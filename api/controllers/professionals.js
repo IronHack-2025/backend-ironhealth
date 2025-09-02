@@ -1,5 +1,4 @@
-
-import { Professional } from '../models/professionals.model.js';
+import Professional from '../models/professionals.model.js';
 
 export const addProfessional = async (req, res) => {
 try {
