@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 
 import newsletterRoutes from './api/routes/newsletter.js'
+import professionalRoutes from './api/routes/professionals.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Usar la arquitectura MVC que hemos visto en clase. No va a hacer vistas como tal (no hay EJS), pero el JSON que devuelven los endpoints se puede llegar a considerar una especie de vista en este modelo.
 app.use("/api", newsletterRoutes);
+app.use("/api", professionalRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
 mongoose.connect(process.env.MONGODB_URI, {
