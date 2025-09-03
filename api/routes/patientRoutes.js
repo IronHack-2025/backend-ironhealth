@@ -3,6 +3,6 @@ import { postNewPatient } from '../controllers/patientControllers.js';
 
 const router = express.Router();
 
-router.post('patients', postNewPatient)
+router.post('/patients', postNewPatient)
 
 export default router;
