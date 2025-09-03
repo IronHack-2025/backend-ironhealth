@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
+import fs from 'fs';
+import path from 'path';
+
+const professions = fs.readFileSync(path.resolve('api/data/professions.json'));
+const professionsData = JSON.parse(professions);
 
 const { Schema } = mongoose;
 const ProfessionalSchema = new Schema({
     name: { type: String, required: true },
     surname: { type: String, required: true },
-    profession: { type: String, required: true },
-    speciality: { type: String, required: false },
+    profession: { type: String, required: true, enum: professionsData.professions.map(p => p.profession) },
+    speciality: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.speciality.map(s => s['speciality-name']))] },
     email: { type: String, required: true, unique: true },
     professionLicenceNumber: { type: String, required: false }
 }, { timestamps: true });
