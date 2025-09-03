@@ -3,7 +3,7 @@ import validateEmail from '../utils/validateEmail.js';
 
 export const addProfessional = async (req, res) => {
 try {
-    const { name, surname, profession, speciality, email, professionLicenceNumber } = req.body;
+    const { name, surname, profession, specialty, email, professionLicenceNumber } = req.body;
 
 // Validar campos obligatorios
  if (!name || name.trim().length < 2 || name.trim().length > 50) {
@@ -18,7 +18,7 @@ try {
       if (!email || !validateEmail(email)) {
       return res.status(400).json({ error: "El email es obligatorio y debe tener un formato válido." });
     }
-     if (speciality && speciality.length > 100) {
+     if (specialty && specialty.length > 100) {
       return res.status(400).json({ error: "La especialidad no puede superar los 100 caracteres." });
     }
     if (professionLicenceNumber && !/^[a-zA-Z0-9]+$/.test(professionLicenceNumber)) {
@@ -34,7 +34,7 @@ try {
         name,
         surname,
         profession,
-        speciality,
+        specialty,
         email,
         professionLicenceNumber
     });

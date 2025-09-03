@@ -10,7 +10,7 @@ const ProfessionalSchema = new Schema({
     name: { type: String, required: true },
     surname: { type: String, required: true },
     profession: { type: String, required: true, enum: professionsData.professions.map(p => p.profession) },
-    speciality: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.speciality.map(s => s['speciality-name']))] },
+    specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-name']))] },
     email: { type: String, required: true, unique: true },
     professionLicenceNumber: { type: String, required: false }
 }, { timestamps: true });
