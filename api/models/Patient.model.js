@@ -37,7 +37,7 @@ const patientSchema = new Schema({
             message: props => `${props.value} is not a valid phone number!`
         }
     },
-    birthDay: {
+    birthDate: {
         type: Date,
         required: true,
     }

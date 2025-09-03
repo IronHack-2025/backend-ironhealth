@@ -1,7 +1,7 @@
-import { Patient } from "../models/Patient.model";
+import { Patient } from "../models/Patient.model.js";
 
 export const postNewPatient = async () => {
-    const { firstName, lastName, email, phone, birthDay } = req.body;
+    const { firstName, lastName, email, phone, birthDate } = req.body;
     
     try{
         const patient = await Patient.create({
@@ -9,9 +9,11 @@ export const postNewPatient = async () => {
         lastName,
         email,
         phone,
-        birthDay
+        birthDate
 
     })
+
+    console.log(`Patient added succesfully: ${patient}`)
     } catch (error){
         console.error(error)
     }
