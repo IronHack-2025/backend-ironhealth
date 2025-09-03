@@ -32,7 +32,7 @@ const patientSchema = new Schema({
         validate: {
             validator: function(phone) {
                 // Must start with +, followed by 11 digits, total length 12
-                return /^\+\d{11}$/.test(phone);
+                return /^\+?\d{7,15}$/.test(phone);
             },
             message: props => `${props.value} is not a valid phone number!`
         }
