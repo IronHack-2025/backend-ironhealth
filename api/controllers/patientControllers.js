@@ -5,38 +5,39 @@ export const postNewPatient = async (req, res) => {
 
 
     if (!req.body) {
-        return res.status(400).json({error: 'Rellena los campos del formulario'} )
+        return res.status(400).json({ error: 'Rellena los campos del formulario' })
     } if (
         typeof firstName !== "string" ||
         typeof lastName !== "string"
     ) {
-        return res.status(400).json({error:"El nombre y el apellido deben contener solo letras"});
+        return res.status(400).json({ error: "El nombre y el apellido deben contener solo letras" });
     }
 
     if (firstName.length <= 2 || lastName.length <= 2) {
-        return res.status(400).json({error:"El nombre y el apellido deben contener 2 o más letras"});
+        return res.status(400).json({ error: "El nombre y el apellido deben contener 2 o más letras" });
+
     } if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s]+$/.test(firstName) ||
         !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s]+$/.test(lastName)) {
-        return res.status(400).json({error:"El nombre y el apellido sólo pueden letras mayúsculas y minúsculas"});
+        return res.status(400).json({ error: "El nombre y el apellido sólo pueden letras mayúsculas y minúsculas" });
     }
 
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return res.status(400).json({error:"Por favor, introduce un email válido"});
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: "Por favor, introduce un email válido" });
     }
 
     const existingEmail = await Patient.findOne({ email });
     if (existingEmail) {
-        return res.status(400).json({error:"El email ya está registrado"});
+        return res.status(400).json({ error: "El email ya está registrado" });
     }
 
     const existingPhone = await Patient.findOne({ phone });
     if (existingPhone) {
-        return res.status(400).json({error:"El teléfono ya está registrado"});
+        return res.status(400).json({ error: "El teléfono ya está registrado" });
     }
 
     const today = new Date()
     if (birthDate >= today) {
-        return res.status(400).json({error:'La fecha de nacimiento no es válida'});
+        return res.status(400).json({ error: 'La fecha de nacimiento no es válida' });
     }
 
 
