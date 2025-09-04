@@ -5,6 +5,7 @@ import cors from 'cors';
 
 import newsletterRoutes from './api/routes/newsletter.js'
 import patientRoutes from './api/routes/patientRoutes.js'
+import professionalRoutes from './api/routes/professionals.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use("/api", newsletterRoutes);
 app.use("/api", patientRoutes
 );
 
+app.use("/api", professionalRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
 mongoose.connect(process.env.MONGODB_URI, {
