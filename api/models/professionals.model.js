@@ -9,8 +9,8 @@ const { Schema } = mongoose;
 const ProfessionalSchema = new Schema({
     name: { type: String, required: true },
     surname: { type: String, required: true },
-    profession: { type: String, required: true, enum: professionsData.professions.map(p => p.profession) },
-    specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-name']))] },
+    profession: { type: String, required: true, enum: professionsData.professions.map(p => p.code) },
+    specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-code']))] },
     email: { type: String, required: true, unique: true },
     professionLicenceNumber: { type: String, required: false }
 }, { timestamps: true });
