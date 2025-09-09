@@ -50,3 +50,12 @@ try {
     res.status(500).json({ error: 'Internal server error', details: error });
 }
 };
+
+export const getAllProfessionals = async(req, res) => {
+    try {
+        const professional = await Professional.find();
+        res.status(200).json(professional)
+    } catch (err){
+        res.status(500).json({ error: 'Error al obtener la lista de profesionales'})
+    }
+}

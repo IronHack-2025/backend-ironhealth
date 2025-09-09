@@ -1,9 +1,11 @@
 import express from 'express';
-import { addProfessional } from '../controllers/professionals.js';
+import { addProfessional, getAllProfessionals } from '../controllers/professionals.js';
 
 const router = express.Router();
 
 router.post('/professionals', addProfessional);
+
+router.get('/professionals', getAllProfessionals);
 
 export default router;
 
