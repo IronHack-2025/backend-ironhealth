@@ -3,13 +3,13 @@ import validateEmail from '../utils/validateEmail.js';
 
 export const addProfessional = async (req, res) => {
 try {
-    const { name, surname, profession, specialty, email, professionLicenceNumber } = req.body;
+    const { firstName, lastName, profession, specialty, email, professionLicenceNumber } = req.body;
 
 // Validar campos obligatorios
- if (!name || name.trim().length < 2 || name.trim().length > 50) {
+ if (!firstName || firstName.trim().length < 2 || firstName.trim().length > 50) {
       return res.status(400).json({ error: "El nombre es obligatorio y debe tener entre 2 y 50 caracteres." });
     }
- if (!surname || surname.trim().length < 2 || surname.trim().length > 50) {
+ if (!lastName || lastName.trim().length < 2 || lastName.trim().length > 50) {
       return res.status(400).json({ error: "El apellido es obligatorio y debe tener entre 2 y 50 caracteres." });
     }
    if (!profession || profession.trim().length < 2) {
@@ -31,8 +31,8 @@ try {
     }
 
     const newProfessional = new Professional({
-        name,
-        surname,
+        firstName,
+        lastName,
         profession,
         specialty,
         email,
