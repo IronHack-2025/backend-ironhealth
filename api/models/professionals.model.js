@@ -7,8 +7,8 @@ const professionsData = JSON.parse(professions);
 
 const { Schema } = mongoose;
 const ProfessionalSchema = new Schema({
-    name: { type: String, required: true },
-    surname: { type: String, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
     profession: { type: String, required: true, enum: professionsData.professions.map(p => p.code) },
     specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-code']))] },
     email: { type: String, required: true, unique: true },
