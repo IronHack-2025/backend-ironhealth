@@ -1,4 +1,4 @@
-import Professional from '../models/professionals.model.js';
+import Professional from '../models/Professionals.model.js';
 import validateEmail from '../utils/validateEmail.js';
 
 export const addProfessional = async (req, res) => {

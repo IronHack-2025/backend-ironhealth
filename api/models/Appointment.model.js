@@ -1,17 +1,27 @@
 import mongoose from 'mongoose'
 
-const { Schema, model } = mongoose;
+const { Schema } = mongoose;
 
 const appointmentSchema = new Schema({
     professionalId: {
         type: String,
         required: true,
-        // Validación
+        validate: {
+            validator: function(professionalId) {
+                return /^[a-fA-F0-9]{24}$/.test(professionalId);
+            },
+            message: props => `${props.value} is not a valid ID!`
+        }
     },
     patientId: {
         type: String,
         required: true,
-        // Validator
+             validate: {
+            validator: function(patientId) {
+                return /^[a-fA-F0-9]{24}$/.test(patientId);
+            },
+            message: props => `${props.value} is not a valid ID!`
+        }
     },
     startDate: {
         type: Date,
@@ -24,7 +34,8 @@ const appointmentSchema = new Schema({
     notes: {
         type: String,
         required: false,
+        maxlength: 500
     }
 })
 
-export const Appointment = model('Appointment', appointmentSchema)
+export default  mongoose.model('Appointment', appointmentSchema)

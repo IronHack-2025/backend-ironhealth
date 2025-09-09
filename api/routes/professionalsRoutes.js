@@ -1,5 +1,5 @@
 import express from 'express';
-import { addProfessional } from '../controllers/professionals.js';
+import { addProfessional } from '../controllers/professionalsControllers.js';
 
 const router = express.Router();
 

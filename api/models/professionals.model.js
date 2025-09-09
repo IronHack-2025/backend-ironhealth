@@ -16,5 +16,3 @@ const ProfessionalSchema = new Schema({
 }, { timestamps: true });
 
 export default mongoose.model("Professional", ProfessionalSchema);
-
-//faltan validaciones y demas
