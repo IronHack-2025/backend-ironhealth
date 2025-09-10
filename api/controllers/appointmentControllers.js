@@ -47,11 +47,15 @@ const { startDate, endDate, professionalId, patientId, notes } = req.body;
         return res.status(400).json({ error: "ID de profesional o paciente no válido." });
     }
 
-    // Verificar si el paciente o el profesional ya tiene una cita en ese rango de tiempo
+    // Verificar si el paciente o el profesional ya tiene una cita en ese rango de tiempo, ignorando las canceladas
     const overlappingAppointment = await Appointment.findOne({
         $or: [
-            { professionalId, startDate: { $lt: endDate }, endDate: { $gt: startDate } },
-            { patientId, startDate: { $lt: endDate }, endDate: { $gt: startDate } }
+            { professionalId, startDate, endDate },
+            { patientId, startDate, endDate }
+        ],
+        $or: [
+            { 'status.cancelled': { $exists: false } },
+            { 'status.cancelled': false }
         ]
     });
     if (overlappingAppointment) {
