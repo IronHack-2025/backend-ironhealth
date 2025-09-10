@@ -7,7 +7,7 @@ const appointmentSchema = new Schema({
         type: String,
         required: true,
         validate: {
-            validator: function(professionalId) {
+            validator: function (professionalId) {
                 return /^[a-fA-F0-9]{24}$/.test(professionalId);
             },
             message: props => `${props.value} is not a valid ID!`
@@ -16,8 +16,8 @@ const appointmentSchema = new Schema({
     patientId: {
         type: String,
         required: true,
-             validate: {
-            validator: function(patientId) {
+        validate: {
+            validator: function (patientId) {
                 return /^[a-fA-F0-9]{24}$/.test(patientId);
             },
             message: props => `${props.value} is not a valid ID!`
@@ -35,7 +35,11 @@ const appointmentSchema = new Schema({
         type: String,
         required: false,
         maxlength: 500
-    }
+    },
+    status: {
+    cancelled: { type: Boolean, default: false },
+    timestamp: Date
+  }
 })
 
-export default  mongoose.model('Appointment', appointmentSchema)
+export default mongoose.model('Appointment', appointmentSchema)

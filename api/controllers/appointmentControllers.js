@@ -81,4 +81,20 @@ const deleteAppointments = async (req, res) => {
     }
 }
 
-export { getAppointments, postAppointments, deleteAppointments };
+const cancelAppointments = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const appointment = await Appointment.findByIdAndUpdate(id, 
+            { 'status.cancelled': true, 'status.timestamp': new Date() }, { new: true }
+        );
+        if (!appointment) {
+            return res.status(404).json({ error: 'Cita no encontrada' });
+        };
+        
+        res.status(200).json({ message: 'Cita cancelada correctamente'})
+    } catch (error) {
+        res.status(500).json({ error: 'Error al cancelar la cita', details: error });
+    }
+}
+
+export { getAppointments, postAppointments, deleteAppointments, cancelAppointments };
