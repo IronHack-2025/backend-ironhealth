@@ -68,4 +68,17 @@ const { startDate, endDate, professionalId, patientId, notes } = req.body;
 
 }
 
-export { getAppointments, postAppointments };
+const deleteAppointments = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedAppointment = await Appointment.findByIdAndDelete(id);
+        if (!deletedAppointment) {
+            return res.status(404).json({ error: 'Cita no encontrada' });
+        }
+        res.status(200).json({ message: 'Cita eliminada correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar la cita', details: error });
+    }
+}
+
+export { getAppointments, postAppointments, deleteAppointments };
