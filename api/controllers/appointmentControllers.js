@@ -49,13 +49,27 @@ const { startDate, endDate, professionalId, patientId, notes } = req.body;
 
     // Verificar si el paciente o el profesional ya tiene una cita en ese rango de tiempo, ignorando las canceladas
     const overlappingAppointment = await Appointment.findOne({
-        $or: [
-            { professionalId, startDate, endDate },
-            { patientId, startDate, endDate }
-        ],
-        $or: [
-            { 'status.cancelled': { $exists: false } },
-            { 'status.cancelled': false }
+        $and: [
+            {
+                $or: [
+                    { 
+                        professionalId, 
+                        startDate: { $lt: endDate }, 
+                        endDate: { $gt: startDate } 
+                    },
+                    { 
+                        patientId, 
+                        startDate: { $lt: endDate }, 
+                        endDate: { $gt: startDate } 
+                    }
+                ]
+            },
+            {
+                $or: [
+                    { 'status.cancelled': { $exists: false } },
+                    { 'status.cancelled': false }
+                ]
+            }
         ]
     });
     if (overlappingAppointment) {
@@ -93,9 +107,9 @@ const cancelAppointments = async (req, res) => {
         );
         if (!appointment) {
             return res.status(404).json({ error: 'Cita no encontrada' });
-        };
+        }
         
-        res.status(200).json({ message: 'Cita cancelada correctamente'})
+        res.status(200).json({ message: 'Cita cancelada correctamente'});
     } catch (error) {
         res.status(500).json({ error: 'Error al cancelar la cita', details: error });
     }
