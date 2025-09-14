@@ -1,6 +1,6 @@
 import express from 'express';
 import { postAppointments, getAppointments, deleteAppointments, cancelAppointments } from '../controllers/appointmentControllers.js';
-import { validateNotes } from '../middleware/validateNotes.js';
+import { validateNotes } from '../middlewares/validateNotes.js';
 
 const router = express.Router();
 
