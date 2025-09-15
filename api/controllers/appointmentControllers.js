@@ -121,4 +121,36 @@ const cancelAppointments = async (req, res) => {
     }
 }
 
-export { getAppointments, postAppointments, deleteAppointments, cancelAppointments };
+const updateAppointmentNotes = async (req, res) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    
+    try {
+        // Validar que el ID sea válido
+        if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+            return res.status(400).json({ error: 'ID de cita inválido' });
+        }
+        
+        const updatedAppointment = await Appointment.findByIdAndUpdate(
+            id, 
+            { notes }, 
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedAppointment) {
+            return res.status(404).json({ error: 'Cita no encontrada' });
+        }
+        
+        res.status(200).json({ 
+            message: 'Notas actualizadas correctamente',
+            appointment: updatedAppointment 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: 'Error al actualizar las notas', 
+            details: error.message 
+        });
+    }
+};
+
+export { getAppointments, postAppointments, deleteAppointments, cancelAppointments, updateAppointmentNotes };
