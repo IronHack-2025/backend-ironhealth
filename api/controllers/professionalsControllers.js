@@ -1,4 +1,4 @@
-import Professional from '../models/professionals.model.js';
+import Professional from '../models/Professionals.model.js'
 import validateEmail from '../utils/validateEmail.js';
 
 export const addProfessional = async (req, res) => {
@@ -56,6 +56,6 @@ export const getAllProfessionals = async(req, res) => {
         const professional = await Professional.find();
         res.status(200).json(professional)
     } catch (err){
-        res.status(500).json({ error: 'Error al obtener la lista de professionales'})
+        res.status(500).json({ error: 'Error al obtener la lista de profesionales'})
     }
 }

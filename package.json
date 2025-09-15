@@ -8,8 +8,9 @@
     "dev": "node --env-file=.env --watch app.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
     "mongoose": "^7.6.1",
-    "cors": "^2.8.5"
+    "sanitize-html": "^2.17.0"
   }
 }

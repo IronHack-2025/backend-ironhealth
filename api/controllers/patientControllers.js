@@ -1,4 +1,4 @@
-import { Patient } from "../models/Patient.model.js";
+import Patient from "../models/Patient.model.js";
 
 export const postNewPatient = async (req, res) => {
     const { firstName, lastName, email, phone, birthDate } = req.body;

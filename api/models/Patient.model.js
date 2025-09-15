@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const { Schema, model } = mongoose;
+const { Schema } = mongoose;
 
 const patientSchema = new Schema({
     firstName: {
@@ -46,4 +46,4 @@ const patientSchema = new Schema({
     }
 })
 
-export const Patient = model('Patient', patientSchema)
+export default  mongoose.model('Patient', patientSchema)

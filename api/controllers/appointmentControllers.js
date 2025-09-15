@@ -1,0 +1,156 @@
+// GET Y POST
+
+import Appointment from "../models/Appointment.model.js";
+
+const getAppointments = async (req, res) => {
+    try {
+        const appointments = await Appointment.find();
+        res.status(200).json(appointments);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener las citas', details: error });
+    }
+    
+}
+
+const postAppointments = async (req, res) => {
+const { startDate, endDate, professionalId, patientId, notes } = req.body;
+   
+   
+    if (!startDate || !endDate || !professionalId || !patientId) {
+        return res.status(400).json({ error: "Faltan campos obligatorios." });
+    }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ error: "Fechas inválidas." });
+    }
+    if (start >= end) {
+        return res.status(400).json({ error: "La fecha de inicio debe ser anterior a la fecha de fin." });
+    }
+    // Permitir citas para el mismo día si la hora es futura
+    if (start.toDateString() === now.toDateString()) {
+        if (start <= now) {
+            return res.status(400).json({ error: "La hora de inicio debe ser futura si la cita es hoy." });
+        }
+    } else if (start < now) {
+        return res.status(400).json({ error: "La fecha de inicio no puede ser en el pasado." });
+    }
+    if (end < now) {
+        return res.status(400).json({ error: "La fecha de fin no puede ser en el pasado." });
+    }
+
+    if (typeof notes === 'string' && notes.length > 500) {
+        return res.status(400).json({ error: "Las notas no pueden exceder los 500 caracteres." });
+    }
+    if (!/^[a-fA-F0-9]{24}$/.test(professionalId) || !/^[a-fA-F0-9]{24}$/.test(patientId)) {
+        return res.status(400).json({ error: "ID de profesional o paciente no válido." });
+    }
+
+    // Verificar si el paciente o el profesional ya tiene una cita en ese rango de tiempo, ignorando las canceladas
+    const overlappingAppointment = await Appointment.findOne({
+        $and: [
+            {
+                $or: [
+                    { 
+                        professionalId, 
+                        startDate: { $lt: endDate }, 
+                        endDate: { $gt: startDate } 
+                    },
+                    { 
+                        patientId, 
+                        startDate: { $lt: endDate }, 
+                        endDate: { $gt: startDate } 
+                    }
+                ]
+            },
+            {
+                $or: [
+                    { 'status.cancelled': { $exists: false } },
+                    { 'status.cancelled': false }
+                ]
+            }
+        ]
+    });
+    if (overlappingAppointment) {
+        return res.status(409).json({ error: "El paciente o el profesional ya tiene una cita en ese horario." });
+    }
+    // Si todo está bien, crea la cita
+     const newAppointment = new Appointment({ startDate, endDate, professionalId, patientId, notes });
+    try {
+        await newAppointment.save();
+        res.status(201).json(newAppointment);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al guardar la cita', details: error });
+    }
+
+}
+
+const deleteAppointments = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedAppointment = await Appointment.findByIdAndDelete(id);
+        if (!deletedAppointment) {
+            return res.status(404).json({ error: 'Cita no encontrada' });
+        }
+        res.status(200).json({ message: 'Cita eliminada correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar la cita', details: error });
+    }
+}
+
+const cancelAppointments = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const appointment = await Appointment.findByIdAndUpdate(
+            id, 
+            { 
+                'status.cancelled': true, 
+                'status.timestamp': new Date() 
+            }, 
+            { new: true }
+        );
+        
+        if (!appointment) {
+            return res.status(404).json({ error: 'Cita no encontrada' });
+        }
+        
+        res.status(200).json({ message: 'Cita cancelada correctamente', appointment });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al cancelar la cita', details: error.message });
+    }
+}
+
+const updateAppointmentNotes = async (req, res) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    
+    try {
+        // Validar que el ID sea válido
+        if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+            return res.status(400).json({ error: 'ID de cita inválido' });
+        }
+        
+        const updatedAppointment = await Appointment.findByIdAndUpdate(
+            id, 
+            { notes }, 
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedAppointment) {
+            return res.status(404).json({ error: 'Cita no encontrada' });
+        }
+        
+        res.status(200).json({ 
+            message: 'Notas actualizadas correctamente',
+            appointment: updatedAppointment 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: 'Error al actualizar las notas', 
+            details: error.message 
+        });
+    }
+};
+
+export { getAppointments, postAppointments, deleteAppointments, cancelAppointments, updateAppointmentNotes };
