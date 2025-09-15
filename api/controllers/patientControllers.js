@@ -60,3 +60,12 @@ export const postNewPatient = async (req, res) => {
     }
 
 }
+
+export const getAllPatients = async(req, res) => {
+    try {
+        const patient = await Patient.find();
+        res.status(200).json(patient)
+    } catch (err){
+        res.status(500).json({ error: 'Error al obtener la lista de pacientes'})
+    }
+}
