@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const professions = fs.readFileSync(path.resolve('api/data/professions.json'));
+const professions = fs.readFileSync(path.resolve("api/data/professions.json"));
 const professionsData = JSON.parse(professions);
 
 const { Schema } = mongoose;
