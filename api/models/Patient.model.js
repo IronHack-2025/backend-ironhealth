@@ -43,7 +43,8 @@ const patientSchema = new Schema({
     birthDate: {
         type: Date,
         required: true,
-    }
+    },
+    image: { type: String, required: false }
 })
 
 export default  mongoose.model('Patient', patientSchema)
