@@ -12,7 +12,8 @@ const ProfessionalSchema = new Schema({
     profession: { type: String, required: true, enum: professionsData.professions.map(p => p.code) },
     specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-code']))] },
     email: { type: String, required: true, unique: true },
-    professionLicenceNumber: { type: String, required: false }
+    professionLicenceNumber: { type: String, required: false },
+    color: { type: String, required: true }
 }, { timestamps: true });
 
 export default mongoose.model("Professional", ProfessionalSchema);
