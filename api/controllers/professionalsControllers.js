@@ -1,6 +1,6 @@
 import Professional from '../models/Professionals.model.js'
 import validateEmail from '../utils/validateEmail.js';
-import getRandomColor from '../utils/getRandomColor.js';
+import getRandomColor from '../utils/assignColor.js';
 
 export const addProfessional = async (req, res) => {
 try {
