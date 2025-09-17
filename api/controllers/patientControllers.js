@@ -1,9 +1,11 @@
 import Patient from "../models/Patient.model.js";
-import cloudinary from "cloudinary";
+import cloudinary from "../config/cloudinary.js";
 import multer from "multer";
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
+
+export const uploadMiddleware = upload.single("image");
 
 export const postNewPatient = async (req, res) => {
   const { firstName, lastName, email, phone, birthDate } = req.body;
@@ -41,7 +43,7 @@ export const postNewPatient = async (req, res) => {
     return res.status(400).json({ error: "La fecha de nacimiento no es válida" });
   }
 
-  let imageUrl = req.file?.cloudinaryUrl || null;
+  let imageUrl = null;
 
   if (req.file) {
     imageUrl = await new Promise((resolve, reject) => {
