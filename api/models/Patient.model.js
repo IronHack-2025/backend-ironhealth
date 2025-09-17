@@ -44,7 +44,7 @@ const patientSchema = new Schema({
         type: Date,
         required: true,
     },
-    image: { type: String, required: false }
+    imageUrl: { type: String, required: false }
 })
 
 export default  mongoose.model('Patient', patientSchema)
