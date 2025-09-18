@@ -1,4 +1,4 @@
-import Professional from '../models/Professionals.model.js'
+import Professional from '../models/professionals.model.js'
 import validateEmail from '../utils/validateEmail.js';
 import getRandomColor from '../utils/assignColor.js';
 

@@ -13,7 +13,12 @@ const ProfessionalSchema = new Schema({
     specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-code']))] },
     email: { type: String, required: true, unique: true },
     professionLicenceNumber: { type: String, required: false },
-    color: { type: String, required: true }
+    color: { type: String, required: true },
+    imageUrl: {
+        type: String,
+        required: true,
+        default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
+    },
 }, { timestamps: true });
 
 export default mongoose.model("Professional", ProfessionalSchema);
