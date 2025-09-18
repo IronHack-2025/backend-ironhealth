@@ -44,7 +44,12 @@ const patientSchema = new Schema({
         type: Date,
         required: true,
     },
-    imageUrl: { type: String, required: false }
+    imageUrl: {
+        type: String,
+        required: true,
+        default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
+    },
 })
 
 export default  mongoose.model('Patient', patientSchema)
+

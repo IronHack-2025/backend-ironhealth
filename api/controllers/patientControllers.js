@@ -33,14 +33,17 @@ export const postNewPatient = async (req, res) => {
         return res.status(400).json({ error: 'La fecha de nacimiento no es válida' });
     }
     try {
-        const patient = await Patient.create({
+        const patientData = {
             firstName,
             lastName,
             email,
             phone,
-            birthDate,
-            imageUrl
-        })
+            birthDate
+        };
+        if (imageUrl) {
+            patientData.imageUrl = imageUrl;
+        }
+        const patient = await Patient.create(patientData);
         console.log(`Patient added succesfully: ${patient}`);
         res.status(200).json(`Patient added succesfully: ${patient}`);
     } catch (error) {
