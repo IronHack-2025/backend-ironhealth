@@ -35,7 +35,9 @@ export const postNewPatient = async (req, res) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         validationErrors.push({ field: 'email', code: VALIDATION_CODES.EMAIL_INVALID_FORMAT });
     }
-    
+    if (!/^\+?[1-9]\d{1,14}$/.test(phone)) {
+        validationErrors.push({ field: 'phone', code: VALIDATION_CODES.PHONE_INVALID_FORMAT });
+    }
     // Verificar si el email ya existe
     try {
         const existingEmail = await Patient.findOne({ email });
@@ -89,7 +91,7 @@ export const postNewPatient = async (req, res) => {
 export const getAllPatients = async (req, res) => {
     try {
         const patients = await Patient.find();
-        return success(res, patients, MESSAGE_CODES.SUCCESS.PATIENT_UPDATED);
+        return success(res, patients, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED);
     } catch (err) {
         console.error('Error fetching patients:', err);
         return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);

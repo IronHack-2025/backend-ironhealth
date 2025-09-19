@@ -20,6 +20,6 @@ export const validationError = (res, errors) => {
   return res.status(400).json({
     success: false,
     messageCode: MESSAGE_CODES.ERROR.VALIDATION_FAILED,
-    details:  validationErrors
+    details:  errors
   });
 };
