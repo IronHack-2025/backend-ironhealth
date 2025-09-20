@@ -1,4 +1,4 @@
-import MESSAGE_CODES from '../utils/messageCodes.js';
+import { MESSAGE_CODES } from '../utils/messageCodes.js';
 
 export const success = (res, data = null, messageCode = MESSAGE_CODES.SUCCESS.OPERATION_SUCCESS, statusCode = 200) => {
   return res.status(statusCode).json({
