@@ -1,25 +1,31 @@
-import { MESSAGE_CODES } from '../utils/messageCodes.js';
+// Respuestas consistentes para toda la API
+import { MESSAGE_CODES } from "../utils/messageCodes.js";
 
-export const success = (res, data = null, messageCode = MESSAGE_CODES.SUCCESS.OPERATION_SUCCESS, statusCode = 200) => {
-  return res.status(statusCode).json({
-    success: true,
-    messageCode,
-    data
-  });
+// Éxito: { success:true, messageCode, data }
+export const success = (
+  res,
+  data,
+  messageCode = MESSAGE_CODES.SUCCESS.OPERATION_SUCCESS,
+  status = 200
+) => {
+  return res.status(status).json({ success: true, messageCode, data });
 };
 
-export const error = (res, messageCode = MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, statusCode = 500, details = null) => {
-  return res.status(statusCode).json({
-    success: false,
-    messageCode,
-    details
-  });
+// Error del servidor u otros: { success:false, messageCode, details }
+export const error = (
+  res,
+  messageCode = MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+  status = 500,
+  details = null
+) => {
+  return res.status(status).json({ success: false, messageCode, details });
 };
 
-export const validationError = (res, errors) => {
-  return res.status(400).json({
+// Error de validación: { success:false, messageCode:'VALIDATION_FAILED', details:[{field?,code,meta?},...] }
+export const validationError = (res, errors, status = 400) => {
+  return res.status(status).json({
     success: false,
     messageCode: MESSAGE_CODES.ERROR.VALIDATION_FAILED,
-    details:  errors
+    details: errors,
   });
 };
