@@ -184,7 +184,7 @@ const cancelAppointments = async (req, res) => {
     return success(
       res,
       updatedAppointment,
-      MESSAGE_CODES.SUCCESS.APPOINTMENT_UPDATED,
+      MESSAGE_CODES.SUCCESS.APPOINTMENT_CANCELLED,
       200
     );
   } catch (e) {
