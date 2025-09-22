@@ -1,33 +1,44 @@
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml from "sanitize-html";
+import { validationError } from "../middlewares/responseHandler.js";
+import { VALIDATION_CODES } from "../utils/messageCodes.js";
 
 const validateNotes = (req, res, next) => {
-    if (req.body.notes) {
-        const originalNotes = req.body.notes;
-        
-        // Sanitizar HTML potencialmente peligroso
-        const sanitizedNotes = sanitizeHtml(originalNotes, {
-            allowedTags: [], // No permitir ningún tag HTML
-            allowedAttributes: {}
-        });
-        
-        // Verificar si había contenido HTML
-        if (originalNotes !== sanitizedNotes) {
-            return res.status(400).json({ 
-                error: "Las notas no pueden contener código HTML." 
-            });
-        }
-        
-        // Validar longitud después de verificar HTML
-        if (sanitizedNotes.length > 500) {
-            return res.status(400).json({ 
-                error: "Las notas no pueden exceder los 500 caracteres." 
-            });
-        }
-        
-        req.body.notes = sanitizedNotes;
+  if (req.body.notes) {
+    const originalNotes = req.body.notes;
+
+    // Sanitizar HTML potencialmente peligroso
+    const sanitizedNotes = sanitizeHtml(originalNotes, {
+      allowedTags: [],
+      allowedAttributes: {},
+    });
+
+    // Verificar si había contenido HTML
+    if (originalNotes !== sanitizedNotes) {
+      return validationError(
+        res,
+        [{ field: "notes", code: VALIDATION_CODES.NOTES_HTML_NOT_ALLOWED }],
+        400
+      );
     }
-    
-    next();
+
+    // Validar longitud después de verificar HTML
+    if (sanitizedNotes.length > 500) {
+      return validationError(
+        res,
+        [
+          {
+            field: "notes",
+            code: VALIDATION_CODES.NOTES_TOO_LONG,
+            meta: { min: 0, max: 500 },
+          },
+        ],
+        400
+      );
+    }
+
+    req.body.notes = sanitizedNotes;
+  }
+  next();
 };
 
 export { validateNotes };

@@ -1,156 +1,241 @@
-// GET Y POST
+// GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
 
 import Appointment from "../models/Appointment.model.js";
+import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
+import { success, error, validationError, } from "../middlewares/responseHandler.js";
 
+// GET /api/appointment
 const getAppointments = async (req, res) => {
-    try {
-        const appointments = await Appointment.find();
-        res.status(200).json(appointments);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener las citas', details: error });
-    }
-    
-}
-
-const postAppointments = async (req, res) => {
-const { startDate, endDate, professionalId, patientId, notes } = req.body;
-   
-   
-    if (!startDate || !endDate || !professionalId || !patientId) {
-        return res.status(400).json({ error: "Faltan campos obligatorios." });
-    }
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const now = new Date();
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return res.status(400).json({ error: "Fechas inválidas." });
-    }
-    if (start >= end) {
-        return res.status(400).json({ error: "La fecha de inicio debe ser anterior a la fecha de fin." });
-    }
-    // Permitir citas para el mismo día si la hora es futura
-    if (start.toDateString() === now.toDateString()) {
-        if (start <= now) {
-            return res.status(400).json({ error: "La hora de inicio debe ser futura si la cita es hoy." });
-        }
-    } else if (start < now) {
-        return res.status(400).json({ error: "La fecha de inicio no puede ser en el pasado." });
-    }
-    if (end < now) {
-        return res.status(400).json({ error: "La fecha de fin no puede ser en el pasado." });
-    }
-
-    if (typeof notes === 'string' && notes.length > 500) {
-        return res.status(400).json({ error: "Las notas no pueden exceder los 500 caracteres." });
-    }
-    if (!/^[a-fA-F0-9]{24}$/.test(professionalId) || !/^[a-fA-F0-9]{24}$/.test(patientId)) {
-        return res.status(400).json({ error: "ID de profesional o paciente no válido." });
-    }
-
-    // Verificar si el paciente o el profesional ya tiene una cita en ese rango de tiempo, ignorando las canceladas
-    const overlappingAppointment = await Appointment.findOne({
-        $and: [
-            {
-                $or: [
-                    { 
-                        professionalId, 
-                        startDate: { $lt: endDate }, 
-                        endDate: { $gt: startDate } 
-                    },
-                    { 
-                        patientId, 
-                        startDate: { $lt: endDate }, 
-                        endDate: { $gt: startDate } 
-                    }
-                ]
-            },
-            {
-                $or: [
-                    { 'status.cancelled': { $exists: false } },
-                    { 'status.cancelled': false }
-                ]
-            }
-        ]
-    });
-    if (overlappingAppointment) {
-        return res.status(409).json({ error: "El paciente o el profesional ya tiene una cita en ese horario." });
-    }
-    // Si todo está bien, crea la cita
-     const newAppointment = new Appointment({ startDate, endDate, professionalId, patientId, notes });
-    try {
-        await newAppointment.save();
-        res.status(201).json(newAppointment);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al guardar la cita', details: error });
-    }
-
-}
-
-const deleteAppointments = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const deletedAppointment = await Appointment.findByIdAndDelete(id);
-        if (!deletedAppointment) {
-            return res.status(404).json({ error: 'Cita no encontrada' });
-        }
-        res.status(200).json({ message: 'Cita eliminada correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar la cita', details: error });
-    }
-}
-
-const cancelAppointments = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const appointment = await Appointment.findByIdAndUpdate(
-            id, 
-            { 
-                'status.cancelled': true, 
-                'status.timestamp': new Date() 
-            }, 
-            { new: true }
-        );
-        
-        if (!appointment) {
-            return res.status(404).json({ error: 'Cita no encontrada' });
-        }
-        
-        res.status(200).json({ message: 'Cita cancelada correctamente', appointment });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al cancelar la cita', details: error.message });
-    }
-}
-
-const updateAppointmentNotes = async (req, res) => {
-    const { id } = req.params;
-    const { notes } = req.body;
-    
-    try {
-        // Validar que el ID sea válido
-        if (!/^[a-fA-F0-9]{24}$/.test(id)) {
-            return res.status(400).json({ error: 'ID de cita inválido' });
-        }
-        
-        const updatedAppointment = await Appointment.findByIdAndUpdate(
-            id, 
-            { notes }, 
-            { new: true, runValidators: true }
-        );
-        
-        if (!updatedAppointment) {
-            return res.status(404).json({ error: 'Cita no encontrada' });
-        }
-        
-        res.status(200).json({ 
-            message: 'Notas actualizadas correctamente',
-            appointment: updatedAppointment 
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            error: 'Error al actualizar las notas', 
-            details: error.message 
-        });
-    }
+  try {
+    const appointments = await Appointment.find().lean();
+    // Siempre devolvemos "sobre" aunque la lista esté vacía
+    return success(
+      res,
+      appointments,
+      MESSAGE_CODES.SUCCESS.APPOINTMENTS_RETRIEVED,
+      200
+    );
+  } catch (e) {
+    return error(
+      res,
+      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+      500,
+      e?.message || "Unexpected error"
+    );
+  }
 };
 
-export { getAppointments, postAppointments, deleteAppointments, cancelAppointments, updateAppointmentNotes };
+// POST /api/appointment
+const postAppointments = async (req, res) => {
+  try {
+    const { professionalId, patientId, startDate, endDate, notes } =
+      req.body || {};
+    const validationErrors = [];
+
+    // Validaciones básicas (reusamos códigos existentes)
+    if (!professionalId) {
+      validationErrors.push({
+        field: "professionalId",
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+    if (!patientId) {
+      validationErrors.push({
+        field: "patientId",
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+    if (!startDate) {
+      validationErrors.push({
+        field: "startDate",
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+    if (!endDate) {
+      validationErrors.push({
+        field: "endDate",
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+
+    // Validación simple de ObjectId (reutilizo NAME_INVALID_CHARACTERS como placeholder)
+    const oid = /^[a-fA-F0-9]{24}$/;
+    if (professionalId && !oid.test(professionalId)) {
+      validationErrors.push({
+        field: "professionalId",
+        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+      });
+    }
+    if (patientId && !oid.test(patientId)) {
+      validationErrors.push({
+        field: "patientId",
+        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+      });
+    }
+
+    // Validación fechas
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    const now = new Date();
+
+    if (start && end && end <= start) {
+      // Reusamos NAME_MIN_LENGTH como placeholder, con meta explicativa (podemos crear un código específico después)
+      validationErrors.push({
+        field: "endDate",
+        code: VALIDATION_CODES.NAME_MIN_LENGTH,
+        meta: { min: 1, max: 999, hint: "end must be after start" },
+      });
+    }
+    if (start && start < now) {
+      validationErrors.push({
+        field: "startDate",
+        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+      }); // placeholder: fecha pasada
+    }
+    if (end && end < now) {
+      validationErrors.push({
+        field: "endDate",
+        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+      }); // placeholder: fecha pasada
+    }
+
+
+    if (validationErrors.length) {
+      return validationError(res, validationErrors, 400);
+    }
+
+    // Si todo va bien crea la cita
+    const appointment = new Appointment({
+      professionalId,
+      patientId,
+      startDate: start,
+      endDate: end,
+      notes,
+    });
+    const savedAppointment = await appointment.save();
+
+    return success(res, savedAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
+  } catch (e) {
+    return error(
+      res,
+      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+      500,
+      e?.message || "Unexpected error"
+    );
+  }
+};
+
+// DELETE /api/appointment/:id
+const deleteAppointments = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+    const oid = /^[a-fA-F0-9]{24}$/;
+    if (!id || !oid.test(id)) {
+      return validationError(
+        res,
+        [{ field: "id", code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
+        400
+      );
+    }
+
+    const deleted = await Appointment.findByIdAndDelete(id);
+    if (!deleted) {
+      return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
+    }
+
+    return success(
+      res,
+      deleted,
+      MESSAGE_CODES.SUCCESS.APPOINTMENT_DELETED,
+      200
+    );
+  } catch (e) {
+    return error(
+      res,
+      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+      500,
+      e?.message || "Unexpected error"
+    );
+  }
+};
+
+// PUT /api/appointment/:id  (cancelar)
+const cancelAppointments = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+    const oid = /^[a-fA-F0-9]{24}$/;
+    if (!id || !oid.test(id)) {
+      return validationError(
+        res,
+        [{ field: "id", code: VALIDATION_CODES.ID_INVALID_FORMAT }],
+        400
+      );
+    }
+
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
+      id,
+      { $set: { status: { cancelled: true, timestamp: new Date() } } },
+      { new: true }
+    );
+    if (!updatedAppointment) {
+      return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
+    }
+
+    return success(
+      res,
+      updatedAppointment,
+      MESSAGE_CODES.SUCCESS.APPOINTMENT_CANCELLED,
+      200
+    );
+  } catch (e) {
+    return error(
+      res,
+      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+      500,
+      e?.message || "Unexpected error"
+    );
+  }
+};
+
+// PATCH /api/appointment/:id/notes  (actualizar notas)
+const updateAppointmentNotes = async (req, res) => {
+  try {
+    const { id } = req.params || {};
+    const { notes } = req.body || {};
+    const oid = /^[a-fA-F0-9]{24}$/;
+
+    if (!id || !oid.test(id)) {
+      return validationError(
+        res,
+        [{ field: "id", code: VALIDATION_CODES.ID_INVALID_FORMAT }],
+        400
+      );
+    }
+
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
+      id,
+      { $set: { notes } },
+      { new: true }
+    );
+    if (!updatedAppointment) {
+      return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
+    }
+
+    return success(res, updatedAppointment, MESSAGE_CODES.SUCCESS.NOTES_UPDATED, 200);
+  } catch (e) {
+    return error(
+      res,
+      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+      500,
+      e?.message || "Unexpected error"
+    );
+  }
+};
+
+export {
+  getAppointments,
+  postAppointments,
+  deleteAppointments,
+  cancelAppointments,
+  updateAppointmentNotes,
+};
