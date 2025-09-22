@@ -14,10 +14,9 @@ const validateNotes = (req, res, next) => {
 
     // Verificar si había contenido HTML
     if (originalNotes !== sanitizedNotes) {
-      // Reusamos NAME_INVALID_CHARACTERS como placeholder; luego podemos crear un código específico NOTEs_HTML_NOT_ALLOWED
       return validationError(
         res,
-        [{ field: "notes", code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
+        [{ field: "notes", code: VALIDATION_CODES.NOTES_HTML_NOT_ALLOWED }],
         400
       );
     }
@@ -29,7 +28,7 @@ const validateNotes = (req, res, next) => {
         [
           {
             field: "notes",
-            code: VALIDATION_CODES.NAME_MIN_LENGTH,
+            code: VALIDATION_CODES.NOTES_TOO_LONG,
             meta: { min: 0, max: 500 },
           },
         ],

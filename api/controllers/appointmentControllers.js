@@ -99,14 +99,6 @@ const postAppointments = async (req, res) => {
       }); // placeholder: fecha pasada
     }
 
-    // Longitud de notas (si vienen)
-    if (typeof notes === "string" && notes.length > 500) {
-      validationErrors.push({
-        field: "notes",
-        code: VALIDATION_CODES.NAME_MIN_LENGTH,
-        meta: { min: 0, max: 500 },
-      });
-    }
 
     if (validationErrors.length) {
       return validationError(res, validationErrors, 400);
@@ -120,9 +112,9 @@ const postAppointments = async (req, res) => {
       endDate: end,
       notes,
     });
-    const saved = await appointment.save();
+    const savedAppointment = await appointment.save();
 
-    return success(res, saved, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
+    return success(res, savedAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
   } catch (e) {
     return error(
       res,
@@ -175,23 +167,23 @@ const cancelAppointments = async (req, res) => {
     if (!id || !oid.test(id)) {
       return validationError(
         res,
-        [{ field: "id", code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
+        [{ field: "id", code: VALIDATION_CODES.ID_INVALID_FORMAT }],
         400
       );
     }
 
-    const updated = await Appointment.findByIdAndUpdate(
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
       { $set: { status: { cancelled: true, timestamp: new Date() } } },
       { new: true }
     );
-    if (!updated) {
+    if (!updatedAppointment) {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
 
     return success(
       res,
-      updated,
+      updatedAppointment,
       MESSAGE_CODES.SUCCESS.APPOINTMENT_UPDATED,
       200
     );
@@ -215,34 +207,21 @@ const updateAppointmentNotes = async (req, res) => {
     if (!id || !oid.test(id)) {
       return validationError(
         res,
-        [{ field: "id", code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
-        400
-      );
-    }
-    if (typeof notes === "string" && notes.length > 500) {
-      return validationError(
-        res,
-        [
-          {
-            field: "notes",
-            code: VALIDATION_CODES.NAME_MIN_LENGTH,
-            meta: { min: 0, max: 500 },
-          },
-        ],
+        [{ field: "id", code: VALIDATION_CODES.ID_INVALID_FORMAT }],
         400
       );
     }
 
-    const updated = await Appointment.findByIdAndUpdate(
+    const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
       { $set: { notes } },
       { new: true }
     );
-    if (!updated) {
+    if (!updatedAppointment) {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
 
-    return success(res, updated, MESSAGE_CODES.SUCCESS.NOTES_UPDATED, 200);
+    return success(res, updatedAppointment, MESSAGE_CODES.SUCCESS.NOTES_UPDATED, 200);
   } catch (e) {
     return error(
       res,

@@ -5,7 +5,7 @@ import { MESSAGE_CODES } from "../utils/messageCodes.js";
 export const success = (
   res,
   data,
-  messageCode = MESSAGE_CODES.SUCCESS.OPERATION_SUCCESS,
+  messageCode,
   status = 200
 ) => {
   return res.status(status).json({ success: true, messageCode, data });
@@ -14,7 +14,7 @@ export const success = (
 // Error del servidor u otros: { success:false, messageCode, details }
 export const error = (
   res,
-  messageCode = MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
+  messageCode,
   status = 500,
   details = null
 ) => {

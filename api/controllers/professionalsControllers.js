@@ -114,10 +114,10 @@ export const addProfessional = async (req, res) => {
       color: getRandomColor(),
     });
 
-    const saved = await newProfessional.save();
+    const savedProfessional = await newProfessional.save();
 
     // Éxito con sobre estandarizado
-    return success(res, saved, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
+    return success(res, savedProfessional, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
   } catch (e) {
     if (e?.code === 11000 && e?.keyPattern?.email) {
       return validationError(
