@@ -2,22 +2,11 @@ import Professional from "../models/professionals.model.js";
 import validateEmail from "../utils/validateEmail.js";
 import getRandomColor from "../utils/assignColor.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
-import {
-  success,
-  error,
-  validationError,
-} from "../middlewares/responseHandler.js";
+import { success, error, validationError } from "../middlewares/responseHandler.js";
 
 export const addProfessional = async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      profession,
-      specialty,
-      email,
-      professionLicenceNumber,
-    } = req.body || {};
+    const { firstName, lastName, profession, specialty, email, professionLicenceNumber } = req.body || {};
 
     // 1) Validación acumulando errores
     const validationErrors = [];
@@ -34,20 +23,14 @@ export const addProfessional = async (req, res) => {
         code: VALIDATION_CODES.NAME_MUST_BE_STRING,
       });
     }
-    if (
-      firstName &&
-      (firstName.trim().length < 2 || firstName.trim().length > 50)
-    ) {
+    if (firstName && (firstName.trim().length < 2 || firstName.trim().length > 50)) {
       validationErrors.push({
         field: "firstName",
         code: VALIDATION_CODES.NAME_MIN_LENGTH,
         meta: { min: 2, max: 50 },
       });
     }
-    if (
-      lastName &&
-      (lastName.trim().length < 2 || lastName.trim().length > 50)
-    ) {
+    if (lastName && (lastName.trim().length < 2 || lastName.trim().length > 50)) {
       validationErrors.push({
         field: "lastName",
         code: VALIDATION_CODES.NAME_MIN_LENGTH,
@@ -78,10 +61,7 @@ export const addProfessional = async (req, res) => {
       });
     }
 
-    if (
-      professionLicenceNumber &&
-      !/^[a-zA-Z0-9]+$/.test(professionLicenceNumber)
-    ) {
+    if (professionLicenceNumber && !/^[a-zA-Z0-9]+$/.test(professionLicenceNumber)) {
       validationErrors.push({
         field: "professionLicenceNumber",
         code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
@@ -96,11 +76,7 @@ export const addProfessional = async (req, res) => {
     // Duplicado por email
     const exist = await Professional.exists({ email });
     if (exist) {
-      return validationError(
-        res,
-        [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }],
-        409
-      );
+      return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
     // Crear y responder
@@ -120,39 +96,51 @@ export const addProfessional = async (req, res) => {
     return success(res, savedProfessional, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
   } catch (e) {
     if (e?.code === 11000 && e?.keyPattern?.email) {
-      return validationError(
-        res,
-        [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }],
-        409
-      );
+      return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
     // Error inesperado
-    return error(
-      res,
-      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
-      500,
-      e?.message || "Unexpected error"
-    );
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e?.message || "Unexpected error");
   }
 };
 
 export const getAllProfessionals = async (req, res) => {
   try {
-    const professionals = await Professional.find().lean();
-    // Devolvemos éxito con sobre estandarizado
-    return success(
-      res,
-      professionals,
-      MESSAGE_CODES.SUCCESS.PROFESSIONALS_RETRIEVED,
-      200
-    );
+    const professionals = await Professional.find({ active: true }).lean();
+    return success(res, professionals, MESSAGE_CODES.SUCCESS.PROFESSIONALS_RETRIEVED, 200);
   } catch (e) {
-    return error(
-      res,
-      MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
-      500,
-      e?.message || "Unexpected error"
-    );
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e?.message || "Unexpected error");
+  }
+};
+
+export const deleteProfessional = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const professionalDelete = await Professional.findById(id);
+
+    if (!professionalDelete) {
+      return error(res, MESSAGE_CODES.ERROR.PROFESSIONAL_NOT_FOUND || "Professional not found", 404);
+    }
+
+    professionalDelete.active = !professionalDelete.active;
+    await professionalDelete.save();
+
+    return success(res, professionalDelete, MESSAGE_CODES.SUCCESS.PROFESSIONAL_DELETED, 200);
+  } catch (e) {
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e?.message || "Unexpected error");
+  }
+};
+
+export const editProfessional = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const professionalEdit = await Professional.findOne({ _id: id, active: true });
+    if (!professionalEdit) {
+      return error(res, MESSAGE_CODES.ERROR.PROFESSIONAL_NOT_FOUND || "Professional not found", 404);
+    }
+
+    return success(res, professionalEdit, MESSAGE_CODES.SUCCESS.PROFESSIONALS_RETRIEVED, 200);
+  } catch (e) {
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e?.message || "Unexpected error");
   }
 };
