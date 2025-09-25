@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
-import { nif_valido } from "../utils/validateDNI.js";
+import nif_valido from "../utils/validateDNI.js";
 
 const professions = fs.readFileSync(path.resolve("api/data/professions.json"));
 const professionsData = JSON.parse(professions);

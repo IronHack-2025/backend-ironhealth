@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { nif_valido } from '../utils/validateDNI.js';
+import nif_valido  from '../utils/validateDNI.js';
 
 const { Schema } = mongoose;
 

@@ -1,4 +1,4 @@
-export const nif_valido = (nif) => {
+ const nif_valido = (nif) => {
   if (!nif) return false;
 
   nif = nif.toUpperCase().trim();
@@ -28,3 +28,5 @@ export const nif_valido = (nif) => {
 
   return false;
 };
+
+export default nif_valido;
