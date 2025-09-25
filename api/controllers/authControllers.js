@@ -66,7 +66,6 @@ export const login = async (req, res) => {
         id: user._id,
         email: user.email,
         role: user.role,
-        mustChangePassword: user.mustChangePassword || false,
         profileId: user.profileId || null,
         profile: populatedProfile
       }
@@ -108,7 +107,6 @@ export const changePassword = async (req, res) => {
     
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
     user.password = hashedNewPassword;
-    user.mustChangePassword = false; // Resetear flag
     await user.save();
     
     return success(res, null, MESSAGE_CODES.SUCCESS.PASSWORD_CHANGED, 200);

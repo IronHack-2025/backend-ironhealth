@@ -15,8 +15,7 @@ const updateAdmin = async () => {
     const result = await User.updateOne(
       { email: adminEmail, role: 'admin' },
       { 
-        password: hashedPassword,
-        mustChangePassword: true 
+        password: hashedPassword
       }
     );
 

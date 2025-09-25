@@ -33,8 +33,7 @@ const seedAdmin = async () => {
       role: 'admin',
       profileId: null,
       profileModel: null,
-      isActive: true,
-      mustChangePassword: false
+      isActive: true
     });
 
     await adminUser.save();
