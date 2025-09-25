@@ -60,7 +60,8 @@ const patientSchema = new Schema({
         required: true,
         default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
     },
-})
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true },
+}, { timestamps: true });
 
 export default  mongoose.model('Patient', patientSchema)
 

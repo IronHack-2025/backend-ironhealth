@@ -101,3 +101,8 @@ export const changePassword = async (req, res) => {
     return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
   }
 };
+
+export const logout = async (req, res) => {
+  // En un sistema sin estado (stateless) como JWT, el logout se maneja en el cliente
+  return success(res, null, MESSAGE_CODES.SUCCESS.LOGOUT_SUCCESSFUL, 200);
+};
