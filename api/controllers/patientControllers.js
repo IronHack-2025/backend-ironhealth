@@ -3,7 +3,7 @@ import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
 import { success, error, validationError } from '../middlewares/responseHandler.js';
 
 export const postNewPatient = async (req, res) => {
-    const { firstName, lastName, email, phone, birthDate, imageUrl } = req.body;
+    const { firstName, lastName, email, phone, birthDate, imageUrl, gender, street, city, postalCode, nationality, emergencyContact } = req.body;
     
     const validationErrors = [];
     
@@ -11,34 +11,56 @@ export const postNewPatient = async (req, res) => {
         return validationError(res, [{ field: 'body', code: VALIDATION_CODES.FORM_FIELDS_REQUIRED }]);
     }
     
+    // Validate firstName and lastName
     if (typeof firstName !== "string" || typeof lastName !== "string") {
         validationErrors.push({ field: 'firstName', code: VALIDATION_CODES.NAME_MUST_BE_STRING });
         validationErrors.push({ field: 'lastName', code: VALIDATION_CODES.NAME_MUST_BE_STRING });
     }
     
-    if (firstName && firstName.length <= 2) {
-        validationErrors.push({ field: 'firstName', code: VALIDATION_CODES.NAME_MIN_LENGTH });
+    // Validate gender
+    if (!['male', 'female', 'non-binary'].includes(gender)) {
+        validationErrors.push({ field: 'gender', code: VALIDATION_CODES.GENDER_INVALID });
     }
-    
-    if (lastName && lastName.length <= 2) {
-        validationErrors.push({ field: 'lastName', code: VALIDATION_CODES.NAME_MIN_LENGTH });
+
+    // Validate street (letters, numbers, spaces, .,ºª,'- and must contain a number)
+    if (typeof street !== 'string' || street.trim().length < 3 || street.trim().length > 100 ||
+        !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç0-9\s.,ºª'\-\/]+$/.test(street.trim()) ||
+        !/\d/.test(street)) {
+        validationErrors.push({ field: 'street', code: VALIDATION_CODES.STREET_INVALID_FORMAT });
     }
-    
-    if (firstName && !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s]+$/.test(firstName)) {
-        validationErrors.push({ field: 'firstName', code: VALIDATION_CODES.NAME_INVALID_CHARACTERS });
+
+    // Validate city (only letters, spaces, hyphens, apostrophes, 2-50 chars)
+    if (typeof city !== 'string' || city.trim().length < 2 || city.trim().length > 50 ||
+        !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s'\-]+$/.test(city.trim())) {
+        validationErrors.push({ field: 'city', code: VALIDATION_CODES.CITY_INVALID_FORMAT });
     }
-    
-    if (lastName && !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s]+$/.test(lastName)) {
-        validationErrors.push({ field: 'lastName', code: VALIDATION_CODES.NAME_INVALID_CHARACTERS });
+
+    // Validate postalCode (Spain 5 digits; change if needed)
+    if (typeof postalCode !== 'string' || !/^\d{5}$/.test(postalCode.trim())) {
+        validationErrors.push({ field: 'postalCode', code: VALIDATION_CODES.POSTAL_CODE_INVALID_FORMAT });
     }
-    
+
+    // Validate nationality
+    if (nationality && !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s\-]+$/.test(nationality)) {
+        validationErrors.push({ field: 'nationality', code: VALIDATION_CODES.NATIONALITY_INVALID });
+    }
+
+    // Validate email
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         validationErrors.push({ field: 'email', code: VALIDATION_CODES.EMAIL_INVALID_FORMAT });
     }
+
+    // Validate phone
     if (!/^\+?[1-9]\d{1,14}$/.test(phone)) {
         validationErrors.push({ field: 'phone', code: VALIDATION_CODES.PHONE_INVALID_FORMAT });
     }
-    // Verificar si el email ya existe
+
+    // Validate emergencyContact
+    if (!/^\+?\d{7,15}$/.test(emergencyContact)) {
+        validationErrors.push({ field: 'emergencyContact', code: VALIDATION_CODES.EMERGENCY_CONTACT_INVALID });
+    }
+
+    // Check for existing email and phone
     try {
         const existingEmail = await Patient.findOne({ email });
         if (existingEmail) {
@@ -55,11 +77,11 @@ export const postNewPatient = async (req, res) => {
     }
     
     const today = new Date();
-    if (birthDate >= today) {
+    if (new Date(birthDate) >= today) {
         validationErrors.push({ field: 'birthDate', code: VALIDATION_CODES.BIRTHDATE_INVALID });
     }
     
-    // Si hay errores de validación, devolverlos todos
+    // If there are validation errors, return them
     if (validationErrors.length > 0) {
         return validationError(res, validationErrors);
     }
@@ -70,23 +92,24 @@ export const postNewPatient = async (req, res) => {
             lastName,
             email,
             phone,
-            birthDate
+            birthDate,
+            imageUrl,
+            gender,
+            street,
+            city,
+            postalCode,
+            nationality,
+            emergencyContact,
         };
-        
-        if (imageUrl) {
-            patientData.imageUrl = imageUrl;
-        }
         
         const patient = await Patient.create(patientData);
         console.log(`Patient added successfully: ${patient}`);
-        
-        return success(res, patient, MESSAGE_CODES.SUCCESS.PATIENT_CREATED, 201);
-        
+        res.status(201).json(patient);
     } catch (err) {
-        console.error('Error creating patient:', err);
-        return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
+        console.error(err);
+        res.status(400).json(`Error registering patient`);
     }
-}
+};
 
 export const getAllPatients = async (req, res) => {
     try {
@@ -98,7 +121,19 @@ export const getAllPatients = async (req, res) => {
     }
 }
 
-
+export const getPatientById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const patient = await Patient.findById(id);
+        if (!patient) {
+            return error(res, MESSAGE_CODES.ERROR.PATIENT_NOT_FOUND, 404, 'Patient not found');
+        }
+        return success(res, patient, MESSAGE_CODES.SUCCESS.PATIENT_RETRIEVED);
+    } catch (err) {
+        console.error('Error fetching patient by ID:', err);
+        return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
+    }
+}
 
 
 

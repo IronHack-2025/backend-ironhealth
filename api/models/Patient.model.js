@@ -33,7 +33,7 @@ const patientSchema = new Schema({
         unique: true,
         trim: true,
         validate: {
-            validator: function(phone) {
+            validator: function (phone) {
                 // Must start with +, followed by 11 digits, total length 12
                 return /^\+?\d{7,15}$/.test(phone);
             },
@@ -49,7 +49,44 @@ const patientSchema = new Schema({
         required: true,
         default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
     },
+    gender: {
+        type: String,
+        required: true,
+        enum: {
+            values: ['male', 'female', 'non-binary'],
+            message: 'Gender must be: male, female, or non-binary'
+        }
+    },
+    street: { type: String, required: true, maxlength: 100 },
+    city: { type: String, required: true, maxlength: 50 },
+    postalCode: { type: String, required: true, maxlength: 10 },
+    nationality: {
+        type: String,
+        required: false,
+        maxlength: 50,
+        validate: {
+            validator: function (nationality) {
+                if (!nationality) return true; // Optional field
+                // Only letters, spaces, hyphens, and common nationality suffixes
+                return /^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s\-]+$/.test(nationality) && nationality.length >= 2;
+            },
+            message: 'Nationality must contain only letters, spaces, and hyphens, minimum 2 characters'
+        }
+    },
+    emergencyContact: {
+        type: String,
+        required: true,
+        trim: true,
+        validate: {
+            validator: function (phone) {
+                // Must start with +, followed by 11 digits, total length 12
+                return /^\+?\d{7,15}$/.test(phone);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        }
+    }
+
 })
 
-export default  mongoose.model('Patient', patientSchema)
+export default mongoose.model('Patient', patientSchema)
 
