@@ -1,10 +1,9 @@
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary } from 'cloudinary';
 export const getSignature = (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
-    const upload_preset = process.env.CLOUDINARY_UPLOAD_PRESET;
-    const folder = req.query.folder || "patients";
-    const source = "uw"; // Cloudinary widget usa source=uw
+    const folder = req.query.folder || 'patients';
+    const source = 'uw'; // Cloudinary widget usa source=uw
 
     const paramsToSign = {
       folder,
@@ -25,6 +24,6 @@ export const getSignature = (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error generando firma" });
+    res.status(500).json({ error: 'Error generando firma' });
   }
 };

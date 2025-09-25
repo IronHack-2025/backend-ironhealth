@@ -1,11 +1,10 @@
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-import patientRoutes from './api/routes/patientRoutes.js'
-import professionalRoutes from './api/routes/professionalsRoutes.js'
-import appointmentsRoutes from './api/routes/appointmentRoutes.js'
+import patientRoutes from './api/routes/patients.route.js';
+import professionalRoutes from './api/routes/professionals.route.js';
+import appointmentsRoutes from './api/routes/appointments.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,21 +15,20 @@ app.use(express.json());
 
 // Usar la arquitectura MVC que hemos visto en clase. No va a hacer vistas como tal (no hay EJS), pero el JSON que devuelven los endpoints se puede llegar a considerar una especie de vista en este modelo.
 
-app.use("/api", patientRoutes);
+app.use('/api', patientRoutes);
 
-app.use("/api", professionalRoutes);
+app.use('/api', professionalRoutes);
 
-app.use("/api", appointmentsRoutes);
+app.use('/api', appointmentsRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Conectado a MongoDB Atlas'))
-.catch((err) => console.error('Error de conexión a MongoDB:', err));
-
-
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('Conectado a MongoDB Atlas'))
+  .catch(err => console.error('Error de conexión a MongoDB:', err));
 
 // Endpoint de ejemplo
 app.get('/api/ping', (req, res) => {
