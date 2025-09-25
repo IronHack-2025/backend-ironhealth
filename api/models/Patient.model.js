@@ -60,7 +60,12 @@ const patientSchema = new Schema({
         required: true,
         default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
     },
-    userId: { type: mongoose.Schema.Types.ObjectId, required: true, unique: true },
+    userId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        unique: true,
+        sparse: true // Permite null y mantiene unicidad para valores no null
+    },
 }, { timestamps: true });
 
 export default  mongoose.model('Patient', patientSchema)

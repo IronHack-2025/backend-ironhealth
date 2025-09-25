@@ -123,22 +123,22 @@ export const addProfessional = async (req, res) => {
       return validationError(res, validationErrors);
     }
     try {
-     // 1. Crear profesional (lógica existente + DNI)
-    const newProfessional = new Professional({
-      firstName,
-      lastName,
-      profession,
-      specialty,
-      email,
-      dni,
-      professionLicenceNumber,
-      color: getRandomColor(),
-    });
+        // 1. Crear profesional sin userId primero
+        const newProfessional = new Professional({
+            firstName,
+            lastName,
+            profession,
+            specialty,
+            email,
+            dni,
+            professionLicenceNumber,
+            color: getRandomColor(),
+        });
 
-    const savedProfessional = await newProfessional.save();
+        const savedProfessional = await newProfessional.save();
         console.log(`Professional added successfully: ${savedProfessional}`);
 
-            // 2. Crear usuario automáticamente
+        // 2. Crear usuario automáticamente
         const hashedPassword = await bcrypt.hash(dni, 12);
         
         const user = new User({
@@ -150,14 +150,16 @@ export const addProfessional = async (req, res) => {
         });
         await user.save();
         
-        // 3. Actualizar profesional con referencia
-        savedProfessional.userId = user._id;
-        await savedProfessional.save();
+        // 3. Actualizar profesional con referencia al usuario
+        await Professional.findByIdAndUpdate(savedProfessional._id, { userId: user._id });
+        
+        // 4. Obtener profesional actualizado para la respuesta
+        const updatedProfessional = await Professional.findById(savedProfessional._id);
         console.log(`User created successfully for professional: ${user.email}`);
 
-        // 4. Responder con éxito incluyendo credenciales
+        // 5. Responder con éxito incluyendo credenciales
         return success(res, {
-            savedProfessional,
+            professional: updatedProfessional,
             authCreated: true,
             credentials: {
                 email: user.email,

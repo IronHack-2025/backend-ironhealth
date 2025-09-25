@@ -81,7 +81,7 @@ export const postNewPatient = async (req, res) => {
     }
     
     try {
-         // 1. Crear el paciente (lógica existente + DNI)
+        // 1. Crear el paciente sin userId primero
         const patientData = {
             firstName,
             lastName,
@@ -98,7 +98,7 @@ export const postNewPatient = async (req, res) => {
         const patient = await Patient.create(patientData);
         console.log(`Patient added successfully: ${patient}`);
         
-        // 2. Crear usuario automáticamente (nueva lógica)
+        // 2. Crear usuario automáticamente
         const hashedPassword = await bcrypt.hash(dni, 12);
         
         const user = new User({
@@ -111,12 +111,14 @@ export const postNewPatient = async (req, res) => {
         await user.save();
         
         // 3. Actualizar paciente con referencia al usuario
-        patient.userId = user._id;
-        await patient.save();
+        await Patient.findByIdAndUpdate(patient._id, { userId: user._id });
+        
+        // 4. Obtener paciente actualizado para la respuesta
+        const updatedPatient = await Patient.findById(patient._id);
         
         // Respuesta extendida con info de autenticación
         return success(res, {
-            patient,
+            patient: updatedPatient,
             authCreated: true,
             credentials: {
                 email: user.email,
