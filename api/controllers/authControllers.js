@@ -21,9 +21,8 @@ export const login = async (req, res) => {
       return validationError(res, validationErrors);
     }
     
-    // Buscar usuario
-    const user = await User.findOne({ email, isActive: true })
-      .populate('profileId');
+    // Buscar usuario SIN populate inicialmente
+    const user = await User.findOne({ email, isActive: true });
     
     if (!user) {
       return error(res, MESSAGE_CODES.ERROR.INVALID_CREDENTIALS, 401);
@@ -31,29 +30,45 @@ export const login = async (req, res) => {
     
     // Verificar contraseña
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    
     if (!isPasswordValid) {
       return error(res, MESSAGE_CODES.ERROR.INVALID_CREDENTIALS, 401);
     }
     
-    // Generar token
+    // Populate solo si NO es admin y tiene profileId
+    let populatedProfile = null;
+    if (user.role !== 'admin' && user.profileId) {
+      const populatedUser = await User.findById(user._id).populate('profileId');
+      populatedProfile = populatedUser.profileId;
+    }
+    
+    // Generar token - MANEJO CORRECTO DE PROFILEID
+    const tokenPayload = { 
+      id: user._id, 
+      role: user.role
+    };
+    
+    // Solo añadir profileId si no es null
+    if (user.profileId) {
+      tokenPayload.profileId = user.profileId;
+    }
+    
     const token = jwt.sign(
-      { 
-        id: user._id, 
-        role: user.role, 
-        profileId: user.profileId._id 
-      },
+      tokenPayload,
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
     
+    // Construir respuesta - MANEJO CORRECTO DE PROFILEID
     const userData = {
       token,
       user: {
         id: user._id,
         email: user.email,
         role: user.role,
-        profileId: user.profileId._id,
-        profile: user.profileId
+        mustChangePassword: user.mustChangePassword || false,
+        profileId: user.profileId || null,
+        profile: populatedProfile
       }
     };
     
@@ -93,6 +108,7 @@ export const changePassword = async (req, res) => {
     
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
     user.password = hashedNewPassword;
+    user.mustChangePassword = false; // Resetear flag
     await user.save();
     
     return success(res, null, MESSAGE_CODES.SUCCESS.PASSWORD_CHANGED, 200);
@@ -103,6 +119,13 @@ export const changePassword = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  // En un sistema sin estado (stateless) como JWT, el logout se maneja en el cliente
-  return success(res, null, MESSAGE_CODES.SUCCESS.LOGOUT_SUCCESSFUL, 200);
+  try {
+    // Opcional: Log del evento para auditoría
+    console.log(`User ${req.user.id} logged out at ${new Date()}`);
+    
+    return success(res, null, MESSAGE_CODES.SUCCESS.LOGOUT_SUCCESSFUL, 200);
+  } catch (err) {
+    console.error('Error during logout:', err);
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
+  }
 };

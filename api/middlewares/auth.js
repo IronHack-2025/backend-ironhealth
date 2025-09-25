@@ -12,12 +12,19 @@ export const verifyToken = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id)
-      .populate('profileId')
-      .select('-password');
+    
+   // Buscar usuario sin populate inicialmente
+    const user = await User.findById(decoded.id).select('-password');
     
     if (!user || !user.isActive) {
       return error(res, MESSAGE_CODES.ERROR.INVALID_USER, 401);
+    }
+
+    // Solo hacer populate si NO es admin y tiene profileId
+    let profile = null;
+    if (user.role !== 'admin' && user.profileId) {
+      const populatedUser = await User.findById(user._id).populate('profileId').select('-password');
+      profile = populatedUser.profileId;
     }
 
     req.user = {
