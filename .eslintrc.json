@@ -16,11 +16,11 @@
     "sourceType": "module"
   },
   "rules": {
-    "no-console": "warn",
+    "no-console": ["warn", { "allow": ["log", "warn"] }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": "off",
     "node/no-unsupported-features/es-syntax": "off",
-    "prettier/prettier": ["error", {"endOfLine": "auto"}]
+    "prettier/prettier": ["error", { "endOfLine": "auto" }]
   },
   "settings": {
     "import/resolver": {
