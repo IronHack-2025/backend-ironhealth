@@ -1,5 +1,5 @@
+import 'dotenv/config';
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 import User from '../models/User.model.js';
 
 
@@ -12,13 +12,8 @@ const seedAdmin = async () => {
     .then(() => console.log('Conectado a MongoDB Atlas'))
     .catch((err) => console.error('Error de conexión a MongoDB:', err));
 
-    const adminEmail = 'admin2@ironhealth.com';
-    const adminPassword = 'Admin1234!'; // Cambia esto por una contraseña segura
-    const hashedPassword = await bcrypt.hash(adminPassword, 12);
-
-    // En adminSeed.js, agregar este log temporal:
-    console.log('Original password:', adminPassword); // Admin1234!
-    console.log('Hashed password:', hashedPassword);
+    const adminEmail = 'admin@ironhealth.com';
+    const adminPassword = 'Admin1234!';
 
     // Verifica si ya existe un admin
     const existingAdmin = await User.findOne({ email: adminEmail, role: 'admin' });
@@ -29,7 +24,7 @@ const seedAdmin = async () => {
 
     const adminUser = new User({
       email: adminEmail,
-      password: hashedPassword,
+      password: adminPassword, // Sin hashear, que lo haga el middleware
       role: 'admin',
       profileId: null,
       profileModel: null,

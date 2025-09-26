@@ -123,55 +123,58 @@ export const addProfessional = async (req, res) => {
       return validationError(res, validationErrors);
     }
     try {
-        // 1. Crear profesional sin userId primero
-        const newProfessional = new Professional({
-            firstName,
-            lastName,
-            profession,
-            specialty,
-            email,
-            dni,
-            professionLicenceNumber,
-            color: getRandomColor(),
-        });
+      // 1. Crear el profesional sin userId
+      const professionalData = {
+        firstName,
+        lastName,
+        profession,
+        specialty,
+        email,
+        dni,
+        professionLicenceNumber,
+        color: getRandomColor(),
+      };
+      
+      const professional = await Professional.create(professionalData);
+      console.log(`Professional created successfully: ${professional._id}`);
+      
+      // 2. Crear usuario automáticamente - El middleware del modelo se encarga del hash
+      console.log(`🔑 Creating professional user with password: "${dni}"`);
+      
+      const user = new User({
+        email,
+        password: dni, // Sin hashear, que lo haga el middleware
+        role: 'professional',
+        profileId: professional._id,
+        profileModel: 'Professional',
+        isActive: true
+      });
+      await user.save();
+      
+      console.log(`✅ Professional user created with email: ${email}`);
 
-        const savedProfessional = await newProfessional.save();
-        console.log(`Professional added successfully: ${savedProfessional}`);
+      // 3. Actualizar profesional con referencia al usuario
+      await Professional.findByIdAndUpdate(professional._id, { userId: user._id });
+      
+      // 4. Obtener profesional actualizado para la respuesta
+      const updatedProfessional = await Professional.findById(professional._id);
+      console.log(`User created successfully for professional: ${user.email}`);
 
-        // 2. Crear usuario automáticamente
-        const hashedPassword = await bcrypt.hash(dni, 12);
-        
-        const user = new User({
-            email,
-            password: hashedPassword,
-            role: 'professional',
-            profileId: savedProfessional._id,
-            profileModel: 'Professional'
-        });
-        await user.save();
-        
-        // 3. Actualizar profesional con referencia al usuario
-        await Professional.findByIdAndUpdate(savedProfessional._id, { userId: user._id });
-        
-        // 4. Obtener profesional actualizado para la respuesta
-        const updatedProfessional = await Professional.findById(savedProfessional._id);
-        console.log(`User created successfully for professional: ${user.email}`);
-
-        // 5. Responder con éxito incluyendo credenciales
-        return success(res, {
-            professional: updatedProfessional,
-            authCreated: true,
-            credentials: {
-                email: user.email,
-                defaultPassword: dni
-            }
-        }, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
-        
+      // 5. Responder con éxito incluyendo credenciales
+      return success(res, {
+          professional: updatedProfessional,
+          authCreated: true,
+          credentials: {
+              email: user.email,
+              defaultPassword: dni
+          }
+      }, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
+      
     } catch (err) {
         console.error('Error creating professional:', err);
         return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
     }
-} catch (e) {
+  } catch (e) {
 
     // Error inesperado
     return error(

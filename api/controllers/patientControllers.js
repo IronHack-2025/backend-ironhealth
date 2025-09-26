@@ -1,6 +1,5 @@
 import Patient from "../models/Patient.model.js";
 import nif_valido from '../utils/validateDNI.js';
-import bcrypt from "bcryptjs";
 import User from '../models/User.model.js';
 import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
 import { success, error, validationError } from '../middlewares/responseHandler.js';
@@ -98,18 +97,18 @@ export const postNewPatient = async (req, res) => {
         const patient = await Patient.create(patientData);
         console.log(`Patient added successfully: ${patient}`);
         
-        // 2. Crear usuario automáticamente
-        const hashedPassword = await bcrypt.hash(dni, 12);
+                // 2. Crear usuario automáticamente - El middleware del modelo se encarga del hash
+        console.log(`🔑 Creating user with password: ${dni}`);
         
         const user = new User({
             email,
-            password: hashedPassword,
+            password: dni, // Sin hashear, que lo haga el middleware
             role: 'patient',
             profileId: patient._id,
             profileModel: 'Patient'
         });
         await user.save();
-        
+          console.log(`✅ User created with email: ${email}`);
         // 3. Actualizar paciente con referencia al usuario
         await Patient.findByIdAndUpdate(patient._id, { userId: user._id });
         

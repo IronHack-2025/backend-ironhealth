@@ -1,6 +1,7 @@
 import User from '../models/User.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import Professional from '../models/professionals.model.js'; // Corregido: professionals.model.js
 import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
 import { success, error, validationError } from '../middlewares/responseHandler.js';
 
@@ -30,6 +31,7 @@ export const login = async (req, res) => {
     
     // Verificar contraseña
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log(`🔍 Password comparison result: ${isPasswordValid}`);
     
     if (!isPasswordValid) {
       return error(res, MESSAGE_CODES.ERROR.INVALID_CREDENTIALS, 401);

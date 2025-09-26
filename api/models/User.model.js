@@ -22,7 +22,11 @@ const userSchema = new Schema({
   },
   profileId: {
     type: mongoose.Schema.Types.ObjectId,
-    refPath: 'role'
+    refPath: 'profileModel'
+  },
+  profileModel: {
+    type: String,
+    enum: ['Patient', 'Professional']
   },
   isActive: {
     type: Boolean,
