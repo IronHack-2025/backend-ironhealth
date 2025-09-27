@@ -20,18 +20,18 @@ export const verifyToken = async (req, res, next) => {
       return error(res, MESSAGE_CODES.ERROR.INVALID_USER, 401);
     }
 
-    // Solo hacer populate si NO es admin y tiene profileId
-    let profile = null;
+    // Hacer populate completo si NO es admin y tiene profileId
+    let populatedProfile = null;
     if (user.role !== 'admin' && user.profileId) {
       const populatedUser = await User.findById(user._id).populate('profileId').select('-password');
-      profile = populatedUser.profileId;
+      populatedProfile = populatedUser.profileId;
     }
 
     req.user = {
       id: user._id,
       role: user.role,
-      profileId: user.profileId._id,
-      profile: user.profileId
+      profileId: user.profileId,
+      profile: populatedProfile // Aquí tenemos toda la información del Professional/Patient
     };
     
     next();

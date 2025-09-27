@@ -133,7 +133,8 @@ export const postNewPatient = async (req, res) => {
 
 export const getAllPatients = async (req, res) => {
     try {
-         const patients = await Patient.find().populate('userId', 'email role');
+         // Populate completo del usuario asociado (sin password por seguridad)
+         const patients = await Patient.find().populate('userId', '-password');
         return success(res, patients, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED);
     } catch (err) {
         console.error('Error fetching patients:', err);

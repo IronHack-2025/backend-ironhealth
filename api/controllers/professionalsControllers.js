@@ -188,7 +188,8 @@ export const addProfessional = async (req, res) => {
 
 export const getAllProfessionals = async (req, res) => {
   try {
-     const professionals = await Professional.find().populate('userId', 'email role');
+     // Populate completo del usuario asociado (sin password por seguridad)
+     const professionals = await Professional.find().populate('userId', '-password');
     // Devolvemos éxito con sobre estandarizado
     return success(
       res,
