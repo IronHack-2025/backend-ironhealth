@@ -1,6 +1,6 @@
 // GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
 
-import Appointment from "../models/Appointment.model.js";
+import Appointment from "../models/appointment.model.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
 import { success, error, validationError, } from "../middlewares/responseHandler.js";
 
