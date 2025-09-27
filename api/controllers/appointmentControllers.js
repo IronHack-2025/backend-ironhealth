@@ -200,8 +200,9 @@ const cancelAppointments = async (req, res) => {
 const updateAppointmentNotes = async (req, res) => {
   try {
     const { id } = req.params || {};
-    const { notes } = req.body || {};
+    const { notes, professionalNotes } = req.body || {};
     const oid = /^[a-fA-F0-9]{24}$/;
+    const validationErrors = [];
 
     if (!id || !oid.test(id)) {
       return validationError(
@@ -211,9 +212,27 @@ const updateAppointmentNotes = async (req, res) => {
       );
     }
 
+    // Validar que al menos uno de los campos se proporcione
+    if (!notes && !professionalNotes) {
+      validationErrors.push({
+        field: "notes",
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+      validationErrors.push({
+        field: "professionalNotes", 
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+      return validationError(res, validationErrors, 400);
+    }
+
+    // Construir el objeto de actualización dinámicamente
+    const updateFields = {};
+    if (notes !== undefined) updateFields.notes = notes;
+    if (professionalNotes !== undefined) updateFields.professionalNotes = professionalNotes;
+
     const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
-      { $set: { notes } },
+      { $set: updateFields },
       { new: true }
     );
     if (!updatedAppointment) {
