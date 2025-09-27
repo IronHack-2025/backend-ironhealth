@@ -1,4 +1,5 @@
 import Patient from "../models/Patient.model.js";
+import validateEmail from "../utils/validateEmail.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
 import { success, error, validationError } from '../middlewares/responseHandler.js';
 
@@ -90,7 +91,7 @@ export const postNewPatient = async (req, res) => {
 
 export const getAllPatients = async (req, res) => {
     try {
-        const patients = await Patient.find();
+        const patients = await Patient.find({ active: true }).lean();
         return success(res, patients, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED);
     } catch (err) {
         console.error('Error fetching patients:', err);
@@ -99,10 +100,149 @@ export const getAllPatients = async (req, res) => {
 }
 
 
+export const deletePatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const patientDelete = await Patient.findById(id);
+
+    if (!patientDelete) {
+      return error(res, MESSAGE_CODES.ERROR.PATIENT_NOT_FOUND || "Patient not found", 404);
+    }
+
+    patientDelete.active = !patientDelete.active;
+    await patientDelete.save();
+
+    return success(res, patientDelete, MESSAGE_CODES.SUCCESS.PATIENT_DELETED, 200);
+  } catch (e) {
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e?.message || "Unexpected error");
+  }
+};
 
 
+export const getEditPatient = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const patientEdit = await Patient.findOne({ _id: id, active: true });
+    if (!patientEdit) {
+      return error(res, MESSAGE_CODES.ERROR.PATIENT_NOT_FOUND || "Patient not found", 404);
+    }
 
+    return success(res, patientEdit, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED, 200);
+  } catch (e) {
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e?.message || "Unexpected error");
+  }
+};
 
+export const putEditPatient = async (req, res) => {
+  try {
+    const { id } = req.params; // ← ¡Importante! El ID viene en la URL
+    const { firstName, lastName, email, phone, birthDate, imageUrl } = req.body || {};
 
+    // 1) Validar que el ID sea un ObjectId válido
+    const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+    if (!id || !isValidObjectId(id)) {
+      return validationError(res, [{ field: "id", code: VALIDATION_CODES.INVALID_ID }], 400);
+    }
+
+    // 2) Validación de campos del cuerpo
+    const validationErrors = [];
+
+    if (!firstName || typeof firstName !== "string") {
+      validationErrors.push({ field: "firstName", code: VALIDATION_CODES.NAME_MUST_BE_STRING });
+    } else if (firstName.trim().length < 2 || firstName.trim().length > 50) {
+      validationErrors.push({
+        field: "firstName",
+        code: VALIDATION_CODES.NAME_MIN_LENGTH,
+        meta: { min: 2, max: 50 },
+      });
+    }
+
+    if (!lastName || typeof lastName !== "string") {
+      validationErrors.push({ field: "lastName", code: VALIDATION_CODES.NAME_MUST_BE_STRING });
+    } else if (lastName.trim().length < 2 || lastName.trim().length > 50) {
+      validationErrors.push({
+        field: "lastName",
+        code: VALIDATION_CODES.NAME_MIN_LENGTH,
+        meta: { min: 2, max: 50 },
+      });
+    }
+
+    if (!email || !validateEmail(email)) {
+      validationErrors.push({ field: "email", code: VALIDATION_CODES.EMAIL_INVALID_FORMAT });
+    }
+
+    if (!phone || !/^\+?\d{7,15}$/.test(phone)) {
+      validationErrors.push({ field: "phone", code: VALIDATION_CODES.PHONE_INVALID_FORMAT });
+    }
+
+    if (!birthDate) {
+      validationErrors.push({ field: "birthDate", code: VALIDATION_CODES.BIRTHDATE_REQUIRED || "BIRTHDATE_REQUIRED" });
+    } else {
+      const birthDateObj = new Date(birthDate);
+      const today = new Date();
+      if (isNaN(birthDateObj.getTime()) || birthDateObj >= today) {
+        validationErrors.push({ field: "birthDate", code: VALIDATION_CODES.BIRTHDATE_INVALID });
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      return validationError(res, validationErrors, 400);
+    }
+
+    // 3) Verificar que el paciente exista
+    const existingPatient = await Patient.findById(id);
+    if (!existingPatient) {
+      return validationError(res, [{ field: "id", code: VALIDATION_CODES.PATIENT_NOT_FOUND }], 404);
+    }
+
+    // 4) Verificar duplicado de email (pero permitir el mismo email si es del mismo paciente)
+    const emailExists = await Patient.findOne({
+      email: email.trim().toLowerCase(),
+      _id: { $ne: id }, // ← Excluir al paciente actual
+    });
+    if (emailExists) {
+      return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
+    }
+
+    // 5) Verificar duplicado de teléfono (pero permitir el mismo teléfono si es del mismo paciente)
+    const phoneExists = await Patient.findOne({
+      phone: phone.trim(),
+      _id: { $ne: id }, // ← Excluir al paciente actual
+    });
+    if (phoneExists) {
+      return validationError(res, [{ field: "phone", code: VALIDATION_CODES.PHONE_ALREADY_EXISTS }], 409);
+    }
+
+    // 6) Actualizar el paciente
+    const updatedPatient = await Patient.findByIdAndUpdate(
+      id,
+      {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        birthDate: new Date(birthDate),
+        ...(imageUrl && { imageUrl: imageUrl.trim() }), // Solo actualizar imageUrl si se proporciona
+      },
+      { new: true, runValidators: false } // Validadores ya los hicimos manualmente
+    );
+
+    // 7) Responder con éxito
+    return success(res, updatedPatient, MESSAGE_CODES.SUCCESS.PATIENT_UPDATED, 200);
+  } catch (e) {
+    console.error("Error en putEditPatient:", e);
+
+    if (e?.code === 11000) {
+      if (e?.keyPattern?.email) {
+        return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
+      }
+      if (e?.keyPattern?.phone) {
+        return validationError(res, [{ field: "phone", code: VALIDATION_CODES.PHONE_ALREADY_EXISTS }], 409);
+      }
+    }
+
+    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, e.message || "Unexpected error");
+  }
+};
 
 

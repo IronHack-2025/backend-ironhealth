@@ -10,6 +10,7 @@ router.get('/professionals', getAllProfessionals);
 router.put('/professionals/:id/delete', deleteProfessional);
 
 router.get('/professionals/:id/edit', getEditProfessional);
+
 router.put('/professionals/:id/edit', putEditProfessional);
 
 export default router;
