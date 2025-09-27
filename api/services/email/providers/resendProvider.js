@@ -11,7 +11,7 @@ let client = null
 if (apiKey) client = new Resend(apiKey)
 
 /**
- * Enviar email listo para enviar (ya con subject/html/text/attachments).
+ * Enviar email listo para ser enviado (con subject/html/text/attachments).
  * No aplica lógica de whitelist/sandbox: eso se hace en la fachada.
  *
  * @param {Object} opts
