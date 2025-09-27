@@ -79,23 +79,22 @@ const postAppointments = async (req, res) => {
     const now = new Date();
 
     if (start && end && end <= start) {
-      // Reusamos NAME_MIN_LENGTH como placeholder, con meta explicativa (podemos crear un código específico después)
       validationErrors.push({
         field: "endDate",
-        code: VALIDATION_CODES.NAME_MIN_LENGTH,
+        code: VALIDATION_CODES.END_TIME_BEFORE_START_TIME,
         meta: { min: 1, max: 999, hint: "end must be after start" },
       });
     }
     if (start && start < now) {
       validationErrors.push({
         field: "startDate",
-        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+        code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
       }); // placeholder: fecha pasada
     }
     if (end && end < now) {
       validationErrors.push({
         field: "endDate",
-        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+        code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
       }); // placeholder: fecha pasada
     }
 
