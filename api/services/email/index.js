@@ -1,5 +1,4 @@
-// Fachada del servicio de email con:
-//  - Sandbox/whitelist en desarrollo (para no ser baneados)
+//  - Whitelist en desarrollo
 //  - Proveedor Resend detrás (adaptador)
 //  - Envío por plantilla o crudo (subject/html/text)
 
@@ -8,14 +7,18 @@ import { resendSend } from "./providers/resendProvider.js";
 // Flags de seguridad/levers de configuración
 const EMAIL_ENABLED =
   String(process.env.EMAIL_ENABLED || "").toLowerCase() === "true";
-const FROM = process.env.EMAIL_FROM || "no-reply@example.com";
+const FROM = process.env.EMAIL_FROM || "no-reply@example.com"; // NOTE: lo usa el provider (resendProvider.js)
 
 // Lista blanca para desarrollo (cuando EMAIL_ENABLED=false)
-// Soporta "*@dominio.com" y correos exactos. Separado por comas.
 const WHITELIST = String(process.env.EMAIL_DEV_WHITELIST || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+
+// Límite de tamaño (MB) para cuerpo + adjuntos (0 = sin límite)
+const MAX_TOTAL_SIZE_MB = Number(process.env.EMAIL_MAX_TOTAL_SIZE_MB || "0");
+const MAX_TOTAL_SIZE_BYTES =
+  MAX_TOTAL_SIZE_MB > 0 ? MAX_TOTAL_SIZE_MB * 1024 * 1024 : 0;
 
 /**
  * Normaliza "to" como array de strings.
@@ -47,6 +50,35 @@ function canSend(toList) {
   return toList.every((addr) => isAllowedWhenDisabled(addr));
 }
 
+// Helpers para estimar tamaño del email
+function byteLen(v) {
+  if (!v) return 0;
+  if (Buffer.isBuffer(v)) return v.length;
+  return Buffer.byteLength(String(v), "utf8");
+}
+
+/**
+ * Aproximación del tamaño total del mensaje (cuerpo + adjuntos).
+ * Si los adjuntos vienen como string base64, se cuenta el tamaño base64 (que es lo que limitan la mayoría de proveedores).
+ */
+function approxEmailSizeBytes({ subject, html, text, attachments }) {
+  let total = 0;
+  total += byteLen(subject);
+  total += byteLen(html);
+  total += byteLen(text);
+  if (Array.isArray(attachments)) {
+    for (const a of attachments) {
+      if (!a) continue;
+      total += byteLen(a.filename);
+      total += byteLen(a.content); // string (posible base64) o Buffer
+      total += byteLen(a.content_type);
+      total += byteLen(a.content_id);
+      total += byteLen(a.path);
+    }
+  }
+  return total;
+}
+
 /**
  * Envío "crudo" (sin plantillas), respetando guardas y proveedor.
  */
@@ -54,7 +86,31 @@ async function sendRaw({ to, subject, html, text, attachments }) {
   const toList = normalizeTo(to);
   if (toList.length === 0) throw new Error("MISSING_RECIPIENT");
 
-  if (!canSend(toList)) {
+  // NEW: aplicar límite de tamaño si está configurado
+  if (MAX_TOTAL_SIZE_BYTES) {
+    const total = approxEmailSizeBytes({ subject, html, text, attachments });
+    if (total > MAX_TOTAL_SIZE_BYTES) {
+      const err = new Error(
+        `EMAIL_TOO_LARGE: ${total} bytes > ${MAX_TOTAL_SIZE_BYTES}`
+      );
+      err.code = "EMAIL_TOO_LARGE";
+      err.limitBytes = MAX_TOTAL_SIZE_BYTES;
+      err.actualBytes = total;
+      throw err;
+    }
+  }
+
+  // Log breve para ver decisión
+  const allowed = canSend(toList);
+  console.log("[EMAIL]", {
+    enabled: EMAIL_ENABLED,
+    toList,
+    allowed,
+    subject,
+    maxSizeMB: MAX_TOTAL_SIZE_MB || 0,
+  });
+
+  if (!allowed) {
     // Sandbox: no enviamos, pero logeamos y devolvemos un id fake
     console.log(
       '[EMAIL SANDBOX] BLOCKED send to=%o subject="%s"',
