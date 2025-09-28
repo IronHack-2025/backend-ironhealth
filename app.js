@@ -1,12 +1,11 @@
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
 
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-
-import patientRoutes from './api/routes/patientRoutes.js'
-import professionalRoutes from './api/routes/professionalsRoutes.js'
-import appointmentsRoutes from './api/routes/appointmentRoutes.js'
-import emailRoutes from './api/routes/emailRoutes.js'
+import patientRoutes from "./api/routes/patientRoutes.js";
+import professionalRoutes from "./api/routes/professionalsRoutes.js";
+import appointmentsRoutes from "./api/routes/appointmentRoutes.js";
+import emailRoutes from "./api/routes/emailRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,21 +22,20 @@ app.use("/api", professionalRoutes);
 
 app.use("/api", appointmentsRoutes);
 
-app.use('/api', emailRoutes);
+app.use("/api", emailRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Conectado a MongoDB Atlas'))
-.catch((err) => console.error('Error de conexión a MongoDB:', err));
-
-
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Conectado a MongoDB Atlas"))
+  .catch((err) => console.error("Error de conexión a MongoDB:", err));
 
 // Endpoint de ejemplo
-app.get('/api/ping', (req, res) => {
-  res.json({ message: 'pong' });
+app.get("/api/ping", (req, res) => {
+  res.json({ message: "pong" });
 });
 
 app.listen(PORT, () => {

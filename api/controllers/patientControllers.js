@@ -1,10 +1,6 @@
-import Patient from "../models/Patient.model.js";
+import Patient from "../models/patient.model.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
-import {
-  success,
-  error,
-  validationError,
-} from "../middlewares/responseHandler.js";
+import { success, error, validationError } from "../middlewares/responseHandler.js";
 
 export const postNewPatient = async (req, res) => {
   const { firstName, lastName, email, phone, birthDate, imageUrl } = req.body;
