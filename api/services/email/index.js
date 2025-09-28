@@ -86,7 +86,7 @@ async function sendRaw({ to, subject, html, text, attachments }) {
   const toList = normalizeTo(to);
   if (toList.length === 0) throw new Error("MISSING_RECIPIENT");
 
-  // NEW: aplicar límite de tamaño si está configurado
+  // Aplicar límite de tamaño si está configurado
   if (MAX_TOTAL_SIZE_BYTES) {
     const total = approxEmailSizeBytes({ subject, html, text, attachments });
     if (total > MAX_TOTAL_SIZE_BYTES) {
