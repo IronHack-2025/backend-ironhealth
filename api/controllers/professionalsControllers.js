@@ -6,7 +6,7 @@ import { success, error, validationError } from "../middlewares/responseHandler.
 
 export const addProfessional = async (req, res) => {
   try {
-    const { firstName, lastName, profession, specialty, email, professionLicenceNumber } = req.body || {};
+    const { firstName, lastName, profession, specialty, email, professionLicenceNumber, imageUrl } = req.body || {};
 
     // 1) Validación acumulando errores
     const validationErrors = [];
@@ -73,22 +73,29 @@ export const addProfessional = async (req, res) => {
       return validationError(res, validationErrors);
     }
 
-    // Duplicado por email
-    const exist = await Professional.exists({ email });
+    // Duplicado por email (normalizar a lowercase para consistencia)
+    const normalizedEmail = email.toLowerCase().trim();
+    const exist = await Professional.exists({ email: normalizedEmail });
     if (exist) {
       return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
     // Crear y responder
-    const newProfessional = new Professional({
-      firstName,
-      lastName,
-      profession,
-      specialty,
-      email,
-      professionLicenceNumber,
+    const professionalData = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      profession: profession.trim(),
+      specialty: specialty ? specialty.trim() : "",
+      email: normalizedEmail,
+      professionLicenceNumber: professionLicenceNumber ? professionLicenceNumber.trim() : "",
       color: getRandomColor(),
-    });
+    };
+    
+    if (imageUrl) {
+      professionalData.imageUrl = imageUrl;
+    }
+    
+    const newProfessional = new Professional(professionalData);
 
     const savedProfessional = await newProfessional.save();
 
@@ -147,15 +154,13 @@ export const getEditProfessional = async (req, res) => {
 
 export const putEditProfessional = async (req, res) => {
   try {
-    const { id } = req.params; // ← ¡Importante! El ID viene en la URL
-    const { firstName, lastName, profession, specialty, email, professionLicenceNumber } = req.body || {};
+    const { id } = req.params; 
+    const { firstName, lastName, profession, specialty, email, professionLicenceNumber, imageUrl } = req.body || {};
 
-    // 1) Validar que el ID sea un ObjectId válido
     const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
     if (!id || !isValidObjectId(id)) {
       return validationError(res, [{ field: "id", code: VALIDATION_CODES.INVALID_ID }], 400);
     }
-    // 2) Validación de campos del cuerpo
     const validationErrors = [];
 
     if (!firstName || typeof firstName !== "string") {
@@ -209,22 +214,19 @@ export const putEditProfessional = async (req, res) => {
       return validationError(res, validationErrors, 400);
     }
 
-    // 3) Verificar que el profesional exista
     const existingProfessional = await Professional.findById(id);
     if (!existingProfessional) {
       return validationError(res, [{ field: "id", code: VALIDATION_CODES.PROFESSIONAL_NOT_FOUND }], 404);
     }
 
-    // 4) Verificar duplicado de email (pero permitir el mismo email si es del mismo profesional)
     const emailExists = await Professional.findOne({
       email: email.trim(),
-      _id: { $ne: id }, // ← Excluir al profesional actual
+      _id: { $ne: id }, // Excluimos al profesional actual
     });
     if (emailExists) {
       return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
-    // 5) Actualizar el profesional
     const updatedProfessional = await Professional.findByIdAndUpdate(
       id,
       {
@@ -234,12 +236,11 @@ export const putEditProfessional = async (req, res) => {
         specialty: specialty ? specialty.trim() : "",
         email: email.trim(),
         professionLicenceNumber: professionLicenceNumber ? professionLicenceNumber.trim() : "",
-        // Nota: no actualizamos `color` ni `imageUrl` a menos que se envíen
+        ...(imageUrl && { imageUrl: imageUrl.trim() }), 
       },
-      { new: true, runValidators: false } // Validadores ya los hicimos manualmente
+      { new: true, runValidators: false } 
     );
 
-    // 6) Responder con éxito
     return success(res, updatedProfessional, MESSAGE_CODES.SUCCESS.PROFESSIONAL_UPDATED, 200);
   } catch (e) {
     console.error("Error en putEditProfessional:", e);

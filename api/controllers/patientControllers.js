@@ -135,16 +135,14 @@ export const getEditPatient = async (req, res) => {
 
 export const putEditPatient = async (req, res) => {
   try {
-    const { id } = req.params; // ← ¡Importante! El ID viene en la URL
+    const { id } = req.params; 
     const { firstName, lastName, email, phone, birthDate, imageUrl } = req.body || {};
 
-    // 1) Validar que el ID sea un ObjectId válido
     const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
     if (!id || !isValidObjectId(id)) {
       return validationError(res, [{ field: "id", code: VALIDATION_CODES.INVALID_ID }], 400);
     }
 
-    // 2) Validación de campos del cuerpo
     const validationErrors = [];
 
     if (!firstName || typeof firstName !== "string") {
@@ -189,13 +187,11 @@ export const putEditPatient = async (req, res) => {
       return validationError(res, validationErrors, 400);
     }
 
-    // 3) Verificar que el paciente exista
     const existingPatient = await Patient.findById(id);
     if (!existingPatient) {
       return validationError(res, [{ field: "id", code: VALIDATION_CODES.PATIENT_NOT_FOUND }], 404);
     }
 
-    // 4) Verificar duplicado de email (pero permitir el mismo email si es del mismo paciente)
     const emailExists = await Patient.findOne({
       email: email.trim().toLowerCase(),
       _id: { $ne: id }, // ← Excluir al paciente actual
@@ -204,16 +200,14 @@ export const putEditPatient = async (req, res) => {
       return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
-    // 5) Verificar duplicado de teléfono (pero permitir el mismo teléfono si es del mismo paciente)
     const phoneExists = await Patient.findOne({
       phone: phone.trim(),
-      _id: { $ne: id }, // ← Excluir al paciente actual
+      _id: { $ne: id }, // Excluimos al paciente actual
     });
     if (phoneExists) {
       return validationError(res, [{ field: "phone", code: VALIDATION_CODES.PHONE_ALREADY_EXISTS }], 409);
     }
 
-    // 6) Actualizar el paciente
     const updatedPatient = await Patient.findByIdAndUpdate(
       id,
       {
@@ -222,12 +216,11 @@ export const putEditPatient = async (req, res) => {
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
         birthDate: new Date(birthDate),
-        ...(imageUrl && { imageUrl: imageUrl.trim() }), // Solo actualizar imageUrl si se proporciona
+        ...(imageUrl && { imageUrl: imageUrl.trim() }), 
       },
-      { new: true, runValidators: false } // Validadores ya los hicimos manualmente
+      { new: true, runValidators: false } 
     );
 
-    // 7) Responder con éxito
     return success(res, updatedPatient, MESSAGE_CODES.SUCCESS.PATIENT_UPDATED, 200);
   } catch (e) {
     console.error("Error en putEditPatient:", e);
