@@ -51,5 +51,5 @@ const patientSchema = new Schema({
     },
 })
 
-export default  mongoose.model('Patient', patientSchema)
+export default mongoose.models.Patient || mongoose.model('Patient', patientSchema)
 

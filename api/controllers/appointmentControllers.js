@@ -1,8 +1,20 @@
 // GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
 
 import Appointment from "../models/Appointment.model.js";
+import Patient from "../models/patient.model.js";
+import Professional from "../models/professionals.model.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
-import { success, error, validationError, } from "../middlewares/responseHandler.js";
+import { success, error, validationError } from "../middlewares/responseHandler.js";
+
+// Helper para detectar idioma preferido (es/en) del paciente
+function pickLang(req) {
+  const bodyLang = req?.body?.preferredLang;
+  if (bodyLang === "en" || bodyLang === "es") return bodyLang;
+  const header = (req.headers["accept-language"] || "")
+    .slice(0, 2)
+    .toLowerCase();
+  return header === "en" ? "en" : "es";
+}
 
 // GET /api/appointment
 const getAppointments = async (req, res) => {
@@ -99,7 +111,6 @@ const postAppointments = async (req, res) => {
       }); // placeholder: fecha pasada
     }
 
-
     if (validationErrors.length) {
       return validationError(res, validationErrors, 400);
     }
@@ -114,7 +125,78 @@ const postAppointments = async (req, res) => {
     });
     const savedAppointment = await appointment.save();
 
-    return success(res, savedAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
+    // HOOK de email de confirmación (NO bloqueante)
+    // Programa el envío con setImmediate para no retrasar la respuesta HTTP.
+    // Usa la plantilla 'appointment_booked'.
+
+    // Enganche de email para notificar al paciente
+    try {
+      const lang = pickLang(req);
+      const { patientId: pid, professionalId: prid } = savedAppointment;
+
+      // Enviamos en background para no bloquear la respuesta
+      setImmediate(() => {
+        (async () => {
+          try {
+            // 1) Busca paciente y profesional por _id (son strings en tu schema)
+            const [patient, professional] = await Promise.all([
+              Patient.findById(
+                pid,
+                "firstName lastName email preferredLang"
+              ).lean(),
+              Professional.findById(
+                prid,
+                "firstName lastName profession specialty"
+              ).lean(),
+            ]);
+
+            // Si no hay email del paciente, no enviamos
+            if (!patient?.email) return;
+
+            // 2) Nombres a mostrar en el email
+            const langPref =
+              patient?.preferredLang === "en" || patient?.preferredLang === "es"
+                ? patient.preferredLang
+                : lang;
+            const patientName =
+              [patient?.firstName, patient?.lastName]
+                .filter(Boolean)
+                .join(" ") || (langPref === "en" ? "Patient" : "Paciente");
+            const professionalName =
+              [professional?.firstName, professional?.lastName]
+                .filter(Boolean)
+                .join(" ") || (langPref === "en" ? "Doctor" : "Profesional");
+
+            // 3) Carga perezosa del servicio y envía plantilla
+            const { emailService } = await import("../services/email/index.js");
+
+            await emailService.sendTemplate({
+              template: "appointment_booked",
+              to: patient.email,
+              data: {
+                patientName,
+                professionalName,
+                start: savedAppointment.startDate, // Date
+                end: savedAppointment.endDate, // Date
+                location: savedAppointment.location || "Consulta", // si no tienes location, eliminar esta línea
+                lang: langPref,
+              },
+            });
+          } catch (err) {
+            console.error("[EMAIL appointment_booked]", err?.message);
+          }
+        })();
+      });
+    } catch (err) {
+      console.error("[EMAIL appointment_booked schedule]", err?.message);
+    }
+
+    return success(
+      res,
+      savedAppointment,
+      MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED,
+      201
+    );
   } catch (e) {
     return error(
       res,
@@ -221,7 +303,12 @@ const updateAppointmentNotes = async (req, res) => {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
 
-    return success(res, updatedAppointment, MESSAGE_CODES.SUCCESS.NOTES_UPDATED, 200);
+    return success(
+      res,
+      updatedAppointment,
+      MESSAGE_CODES.SUCCESS.NOTES_UPDATED,
+      200
+    );
   } catch (e) {
     return error(
       res,

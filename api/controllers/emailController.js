@@ -12,7 +12,7 @@ const schema = z.object({
   text: z.string().optional(),
   // O bien se usa una plantilla:
   template: z.enum(["patient_welcome", "appointment_booked"]).optional(),
-  // FIX: evitar z.record(z.any()) en zod classic; usamos objeto “abierto”
+  // ...con datos opcionales para la plantilla
   data: z.object({}).passthrough().optional(),
 });
 
