@@ -1,7 +1,6 @@
 import User from '../models/User.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import Professional from '../models/professionals.model.js'; // Corregido: professionals.model.js
 import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
 import { success, error, validationError } from '../middlewares/responseHandler.js';
 
@@ -93,7 +92,7 @@ export const changePassword = async (req, res) => {
       validationErrors.push({ field: 'newPassword', code: VALIDATION_CODES.FORM_FIELDS_REQUIRED });
     }
     if (newPassword && newPassword.length < 6) {
-      validationErrors.push({ field: 'newPassword', code: VALIDATION_CODES.NAME_MIN_LENGTH, meta: { min: 6 } });
+      validationErrors.push({ field: 'newPassword', code: VALIDATION_CODES.PASSWORD_MIN_LENGTH, meta: { min: 6 } });
     }
     
     if (validationErrors.length > 0) {
@@ -107,8 +106,7 @@ export const changePassword = async (req, res) => {
       return error(res, MESSAGE_CODES.ERROR.INCORRECT_PASSWORD, 400);
     }
     
-    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-    user.password = hashedNewPassword;
+    user.password = newPassword;
     await user.save();
     
     return success(res, null, MESSAGE_CODES.SUCCESS.PASSWORD_CHANGED, 200);
