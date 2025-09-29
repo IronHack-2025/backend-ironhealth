@@ -1,9 +1,11 @@
 import Patient from "../models/Patient.model.js";
+import nif_valido from '../utils/validateDNI.js';
+import User from '../models/User.model.js';
 import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
 import { success, error, validationError } from '../middlewares/responseHandler.js';
 
 export const postNewPatient = async (req, res) => {
-    const { firstName, lastName, email, phone, birthDate, imageUrl } = req.body;
+    const { firstName, lastName, email, phone, birthDate, imageUrl, dni } = req.body;
     
     const validationErrors = [];
     
@@ -38,6 +40,9 @@ export const postNewPatient = async (req, res) => {
     if (!/^\+?[1-9]\d{1,14}$/.test(phone)) {
         validationErrors.push({ field: 'phone', code: VALIDATION_CODES.PHONE_INVALID_FORMAT });
     }
+    if (!nif_valido(dni)) {
+        validationErrors.push({ field: 'dni', code: VALIDATION_CODES.DNI_INVALID_FORMAT });
+    }
     // Verificar si el email ya existe
     try {
         const existingEmail = await Patient.findOne({ email });
@@ -48,6 +53,16 @@ export const postNewPatient = async (req, res) => {
         const existingPhone = await Patient.findOne({ phone });
         if (existingPhone) {
             validationErrors.push({ field: 'phone', code: VALIDATION_CODES.PHONE_ALREADY_EXISTS });
+        }
+
+         const existingDni = await Patient.findOne({ dni });
+        if (existingDni) {
+            validationErrors.push({ field: 'dni', code: VALIDATION_CODES.DNI_ALREADY_EXISTS }); // Reutilizamos código
+        }
+ 
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            validationErrors.push({ field: 'email', code: VALIDATION_CODES.USER_ALREADY_EXISTS });
         }
     } catch (err) {
         console.error('Error checking existing records:', err);
@@ -65,12 +80,14 @@ export const postNewPatient = async (req, res) => {
     }
     
     try {
+        // 1. Crear el paciente sin userId primero
         const patientData = {
             firstName,
             lastName,
             email,
             phone,
-            birthDate
+            birthDate,
+            dni
         };
         
         if (imageUrl) {
@@ -80,7 +97,33 @@ export const postNewPatient = async (req, res) => {
         const patient = await Patient.create(patientData);
         console.log(`Patient added successfully: ${patient}`);
         
-        return success(res, patient, MESSAGE_CODES.SUCCESS.PATIENT_CREATED, 201);
+                // 2. Crear usuario automáticamente - El middleware del modelo se encarga del hash
+        console.log(`🔑 Creating user with password: ${dni}`);
+        
+        const user = new User({
+            email,
+            password: dni, // Sin hashear, que lo haga el middleware
+            role: 'patient',
+            profileId: patient._id,
+            profileModel: 'Patient'
+        });
+        await user.save();
+          console.log(`✅ User created with email: ${email}`);
+        // 3. Actualizar paciente con referencia al usuario
+        await Patient.findByIdAndUpdate(patient._id, { userId: user._id });
+        
+        // 4. Obtener paciente actualizado para la respuesta
+        const updatedPatient = await Patient.findById(patient._id);
+        
+        // Respuesta extendida con info de autenticación
+        return success(res, {
+            patient: updatedPatient,
+            authCreated: true,
+            credentials: {
+                email: user.email,
+                defaultPassword: dni
+            }
+        }, MESSAGE_CODES.SUCCESS.PATIENT_CREATED, 201);
         
     } catch (err) {
         console.error('Error creating patient:', err);
@@ -90,7 +133,8 @@ export const postNewPatient = async (req, res) => {
 
 export const getAllPatients = async (req, res) => {
     try {
-        const patients = await Patient.find();
+         // Populate completo del usuario asociado (sin password por seguridad)
+         const patients = await Patient.find().populate('userId', '-password');
         return success(res, patients, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED);
     } catch (err) {
         console.error('Error fetching patients:', err);

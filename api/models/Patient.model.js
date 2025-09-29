@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import nif_valido  from '../utils/validateDNI.js';
 
 const { Schema } = mongoose;
 
@@ -40,6 +41,16 @@ const patientSchema = new Schema({
             message: props => `${props.value} is not a valid phone number!`
         }
     },
+    dni: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        validate: {
+            validator: nif_valido,
+            message: props => `${props.value} is not a valid DNI/NIE!`
+        }
+    },
     birthDate: {
         type: Date,
         required: true,
@@ -49,7 +60,13 @@ const patientSchema = new Schema({
         required: true,
         default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
     },
-})
+    userId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        unique: true,
+        sparse: true // Permite null y mantiene unicidad para valores no null
+    },
+}, { timestamps: true });
 
 export default  mongoose.model('Patient', patientSchema)
 

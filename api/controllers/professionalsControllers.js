@@ -1,6 +1,9 @@
 import Professional from "../models/professionals.model.js";
 import validateEmail from "../utils/validateEmail.js";
 import getRandomColor from "../utils/assignColor.js";
+import bcrypt from "bcryptjs";
+import User from "../models/User.model.js";
+import nif_valido from '../utils/validateDNI.js';
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
 import {
   success,
@@ -16,6 +19,7 @@ export const addProfessional = async (req, res) => {
       profession,
       specialty,
       email,
+      dni,
       professionLicenceNumber,
     } = req.body || {};
 
@@ -33,6 +37,9 @@ export const addProfessional = async (req, res) => {
         field: "lastName",
         code: VALIDATION_CODES.NAME_MUST_BE_STRING,
       });
+    }
+    if (!dni) {
+        validationErrors.push({ field: 'dni', code: VALIDATION_CODES.FORM_FIELDS_REQUIRED });
     }
     if (
       firstName &&
@@ -77,7 +84,9 @@ export const addProfessional = async (req, res) => {
         code: VALIDATION_CODES.EMAIL_INVALID_FORMAT,
       });
     }
-
+    if ( !nif_valido(dni)) {
+        validationErrors.push({ field: 'dni', code: VALIDATION_CODES.DNI_INVALID_FORMAT });
+    }
     if (
       professionLicenceNumber &&
       !/^[a-zA-Z0-9]+$/.test(professionLicenceNumber)
@@ -88,44 +97,84 @@ export const addProfessional = async (req, res) => {
       });
     }
 
+       try {
+        const existingEmail = await Professional.findOne({ email });
+        if (existingEmail) {
+            validationErrors.push({ field: 'email', code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS });
+        }
+        
+        const existingDni = await Professional.findOne({ dni });
+        if (existingDni) {
+            validationErrors.push({ field: 'dni', code: VALIDATION_CODES.DNI_ALREADY_EXISTS });
+        }
+        
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            validationErrors.push({ field: 'email', code: VALIDATION_CODES.USER_ALREADY_EXISTS });
+        }
+        
+    } catch (err) {
+        console.error('Error checking existing records:', err);
+        return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR);
+    }
+
     if (validationErrors.length) {
       // 400: devolvemos TODOS los errores de validación
       return validationError(res, validationErrors);
     }
+    try {
+      // 1. Crear el profesional sin userId
+      const professionalData = {
+        firstName,
+        lastName,
+        profession,
+        specialty,
+        email,
+        dni,
+        professionLicenceNumber,
+        color: getRandomColor(),
+      };
+      
+      const professional = await Professional.create(professionalData);
+      console.log(`Professional created successfully: ${professional._id}`);
+      
+      // 2. Crear usuario automáticamente - El middleware del modelo se encarga del hash
+      console.log(`🔑 Creating professional user with password: "${dni}"`);
+      
+      const user = new User({
+        email,
+        password: dni, // Sin hashear, que lo haga el middleware
+        role: 'professional',
+        profileId: professional._id,
+        profileModel: 'Professional',
+        isActive: true
+      });
+      await user.save();
+      
+      console.log(`✅ Professional user created with email: ${email}`);
 
-    // Duplicado por email
-    const exist = await Professional.exists({ email });
-    if (exist) {
-      return validationError(
-        res,
-        [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }],
-        409
-      );
+      // 3. Actualizar profesional con referencia al usuario
+      await Professional.findByIdAndUpdate(professional._id, { userId: user._id });
+      
+      // 4. Obtener profesional actualizado para la respuesta
+      const updatedProfessional = await Professional.findById(professional._id);
+      console.log(`User created successfully for professional: ${user.email}`);
+
+      // 5. Responder con éxito incluyendo credenciales
+      return success(res, {
+          professional: updatedProfessional,
+          authCreated: true,
+          credentials: {
+              email: user.email,
+              defaultPassword: dni
+          }
+      }, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
+      
+    } catch (err) {
+        console.error('Error creating professional:', err);
+        return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
     }
-
-    // Crear y responder
-    const newProfessional = new Professional({
-      firstName,
-      lastName,
-      profession,
-      specialty,
-      email,
-      professionLicenceNumber,
-      color: getRandomColor(),
-    });
-
-    const savedProfessional = await newProfessional.save();
-
-    // Éxito con sobre estandarizado
-    return success(res, savedProfessional, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
   } catch (e) {
-    if (e?.code === 11000 && e?.keyPattern?.email) {
-      return validationError(
-        res,
-        [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }],
-        409
-      );
-    }
 
     // Error inesperado
     return error(
@@ -139,7 +188,8 @@ export const addProfessional = async (req, res) => {
 
 export const getAllProfessionals = async (req, res) => {
   try {
-    const professionals = await Professional.find().lean();
+     // Populate completo del usuario asociado (sin password por seguridad)
+     const professionals = await Professional.find().populate('userId', '-password');
     // Devolvemos éxito con sobre estandarizado
     return success(
       res,
