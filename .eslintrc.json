@@ -20,6 +20,7 @@
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "node/no-unpublished-require": "off",
     "node/no-unsupported-features/es-syntax": "off",
+    "node/no-unpublished-import": "off",
     "prettier/prettier": ["error", { "endOfLine": "auto" }]
   },
   "settings": {
@@ -29,5 +30,16 @@
       }
     }
   },
-  "plugins": ["prettier"]
+  "plugins": ["prettier"],
+  "overrides": [
+    {
+      "files": ["jest.config.js"],
+      "env": {
+        "node": true
+      },
+      "parserOptions": {
+        "sourceType": "script"
+      }
+    }
+  ]
 }

@@ -22,19 +22,25 @@ app.use('/api', professionalRoutes);
 app.use('/api', appointmentsRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('Conectado a MongoDB Atlas'))
-  .catch(err => console.error('Error de conexión a MongoDB:', err));
+if (process.env.NODE_ENV !== 'test') {
+  mongoose
+    .connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => console.log('Conectado a MongoDB Atlas'))
+    .catch(err => console.error('Error de conexión a MongoDB:', err));
+}
 
 // Endpoint de ejemplo
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Servidor escuchando en puerto ${PORT}`);
+  });
+}
+
+export default app;
