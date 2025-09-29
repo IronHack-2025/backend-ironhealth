@@ -22,10 +22,9 @@ export const postNewPatient = async (req, res) => {
         validationErrors.push({ field: 'gender', code: VALIDATION_CODES.GENDER_INVALID });
     }
 
-    // Validate street (letters, numbers, spaces, .,ºª,'- and must contain a number)
-    if (typeof street !== 'string' || street.trim().length < 3 || street.trim().length > 100 ||
-        !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç0-9\s.,ºª'\-\/]+$/.test(street.trim()) ||
-        !/\d/.test(street)) {
+    // Validate street (more flexible - letters, numbers, spaces, common punctuation)
+    if (typeof street !== 'string' || street.trim().length < 2 || street.trim().length > 100 ||
+        !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç0-9\s.,ºª'\-\/()#]+$/.test(street.trim())) {
         validationErrors.push({ field: 'street', code: VALIDATION_CODES.STREET_INVALID_FORMAT });
     }
 
@@ -128,7 +127,7 @@ export const getPatientById = async (req, res) => {
         if (!patient) {
             return error(res, MESSAGE_CODES.ERROR.PATIENT_NOT_FOUND, 404, 'Patient not found');
         }
-        return success(res, patient, MESSAGE_CODES.SUCCESS.PATIENT_RETRIEVED);
+        return success(res, patient, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED);
     } catch (err) {
         console.error('Error fetching patient by ID:', err);
         return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);

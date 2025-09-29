@@ -62,7 +62,7 @@ const patientSchema = new Schema({
     postalCode: { type: String, required: true, maxlength: 10 },
     nationality: {
         type: String,
-        required: false,
+        required: true,
         maxlength: 50,
         validate: {
             validator: function (nationality) {
