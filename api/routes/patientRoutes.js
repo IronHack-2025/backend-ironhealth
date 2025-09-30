@@ -18,6 +18,6 @@ router.get('/patients/:id/edit', verifyToken, getEditPatient);
 
 router.put('/patients/:id/edit', verifyToken, requireRole(['admin', 'professional']),putEditPatient);
 
-router.get('/patients/:id', getPatientById);
+router.get('/patients/:id', verifyToken, requireOwnPatientOrAdmin, getPatientById);
 
 export default router;
