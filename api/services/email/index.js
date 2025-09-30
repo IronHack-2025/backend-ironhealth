@@ -9,6 +9,10 @@ const EMAIL_ENABLED =
   String(process.env.EMAIL_ENABLED || "").toLowerCase() === "true";
 const FROM = process.env.EMAIL_FROM || "no-reply@example.com"; // NOTE: lo usa el provider (resendProvider.js)
 
+// Kill-switch global para desactivar todos los envíos (dev y prod)
+const EMAIL_DISABLE_ALL =
+  String(process.env.EMAIL_DISABLE_ALL || "").toLowerCase() === "true";
+
 // Lista blanca para desarrollo (cuando EMAIL_ENABLED=false)
 const WHITELIST = String(process.env.EMAIL_DEV_WHITELIST || "")
   .split(",")
@@ -45,6 +49,9 @@ function isAllowedWhenDisabled(email) {
  * Determina si vamos a enviar realmente o simular (sandbox).
  */
 function canSend(toList) {
+  // NEW: si el kill-switch está activado, nunca se envía
+  if (EMAIL_DISABLE_ALL) return false;
+
   if (EMAIL_ENABLED) return true; // en producción o cuando actives, enviamos
   if (WHITELIST.length === 0) return false;
   return toList.every((addr) => isAllowedWhenDisabled(addr));
@@ -104,6 +111,7 @@ async function sendRaw({ to, subject, html, text, attachments }) {
   const allowed = canSend(toList);
   console.log("[EMAIL]", {
     enabled: EMAIL_ENABLED,
+    disabledAll: EMAIL_DISABLE_ALL, // NEW: ver en logs si está el kill-switch
     toList,
     allowed,
     subject,
@@ -111,7 +119,7 @@ async function sendRaw({ to, subject, html, text, attachments }) {
   });
 
   if (!allowed) {
-    // Sandbox: no enviamos, pero logeamos y devolvemos un id fake
+    // Sandbox/kill-switch: no enviamos, pero logeamos y devolvemos un id fake
     console.log(
       '[EMAIL SANDBOX] BLOCKED send to=%o subject="%s"',
       toList,
@@ -144,6 +152,8 @@ export const emailService = {
     if (!template) throw new Error("TEMPLATE_REQUIRED");
 
     switch (template) {
+
+      // Bienvenida paciente
       case "patient_welcome": {
         // Import dinámico para cargar solo cuando se usa esa plantilla
         const { patientWelcomeTemplate } = await import(
@@ -152,6 +162,7 @@ export const emailService = {
         const t = patientWelcomeTemplate({ ...data });
         return sendRaw({ to, ...t });
       }
+      // Cita creada
       case "appointment_booked": {
         const { appointmentBookedTemplate } = await import(
           "./templates/appointmentBooked.js"
@@ -159,6 +170,16 @@ export const emailService = {
         const t = appointmentBookedTemplate({ ...data });
         return sendRaw({ to, ...t });
       }
+
+      // Bienvenida profesional
+      case "professional_welcome": {
+        const { professionalWelcomeTemplate } = await import(
+          "./templates/professionalWelcome.js"
+        );
+        const t = professionalWelcomeTemplate({ ...data });
+        return sendRaw({ to, ...t });
+      }
+
       default:
         throw new Error("EMAIL_TEMPLATE_NOT_FOUND");
     }

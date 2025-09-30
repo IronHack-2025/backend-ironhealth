@@ -2,23 +2,30 @@
 // Compatible con Outlook (VML + tabla)
 const LOGO_URL = process.env.EMAIL_LOGO_URL || "";
 const BRAND_COLOR = "#2563eb"; // azul IronHealth
-const TEXT_COLOR = "#111827"; // gris muy oscuro
+const TEXT_COLOR = "#111827";  // gris muy oscuro
 const MUTED_COLOR = "#6b7280"; // gris secundario
-const BG_COLOR = "#f3f4f6"; // gris de fondo
-const CARD_BG = "#ffffff"; // fondo del "card"
+const BG_COLOR = "#f3f4f6";    // gris de fondo
+const CARD_BG = "#ffffff";     // fondo del "card"
 const RADIUS = "12px";
 
-export function patientWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
-  const safeName = firstName || (lang === "en" ? "Patient" : "Paciente");
+/**
+ * professionalWelcomeTemplate
+ * @param {object} params
+ * @param {string} params.firstName       - nombre del profesional
+ * @param {string} params.portalUrl       - URL al panel del profesional
+ * @param {'es'|'en'} [params.lang='es']  - idioma
+ */
+export function professionalWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
+  const safeName = firstName || (lang === "en" ? "Professional" : "Profesional");
 
   const t = (key) => {
     const dict = {
       es: {
         subject: `¡Bienvenido/a a IronHealth, ${safeName}!`,
-        title: "Bienvenido/a a IronHealth",
+        title: "Bienvenido/a al portal de profesionales",
         hello: `Hola ${safeName},`,
         copy1:
-          "Gracias por registrarte en <b>IronHealth</b>. A partir de ahora podrás gestionar tus citas, ver tus profesionales y mantener tus datos al día.",
+          "Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil.",
         copy2:
           "Si tienes cualquier duda, responde a este correo y nuestro equipo te ayudará.",
         cta: "Acceder a mi Panel",
@@ -27,10 +34,10 @@ export function patientWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
       },
       en: {
         subject: `Welcome to IronHealth, ${safeName}!`,
-        title: "Welcome to IronHealth",
+        title: "Welcome to the professional portal",
         hello: `Hi ${safeName},`,
         copy1:
-          "Thanks for signing up to <b>IronHealth</b>. From now on you can manage your appointments, view your professionals and keep your data up to date.",
+          "Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile.",
         copy2:
           "If you have any questions, just reply to this email and our team will assist you.",
         cta: "Go to my Dashboard",
@@ -47,12 +54,7 @@ export function patientWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
   const buttonHtml = portalUrl
     ? `
     <!--[if mso]>
-    <v:roundrect
-      xmlns:v="urn:schemas-microsoft-com:vml"
-      xmlns:w="urn:schemas-microsoft-com:office:word"
-      href="${portalUrl}"
-      style="height:44px;v-text-anchor:middle;width:240px;"
-      arcsize="12%" stroke="f" fillcolor="${BRAND_COLOR}">
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${portalUrl}" style="height:44px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="${BRAND_COLOR}">
       <w:anchorlock/>
       <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">
         ${t("cta")}
@@ -60,39 +62,21 @@ export function patientWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
     </v:roundrect>
     <![endif]-->
     <!--[if !mso]><!-- -->
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-      <tr>
-        <td align="center" bgcolor="${BRAND_COLOR}" style="border-radius:8px;">
-          <a href="${portalUrl}" target="_blank"
-             style="
-               display:inline-block;
-               padding:12px 18px;
-               font-family:Arial,sans-serif;
-               font-size:16px;
-               font-weight:700;
-               line-height:20px;
-               color:#ffffff;
-               text-decoration:none;
-               background-color:${BRAND_COLOR};
-               border-radius:8px;
-               mso-padding-alt:0;
-             ">
-            ${t("cta")}
-          </a>
-        </td>
-      </tr>
-    </table>
+    <a href="${portalUrl}" target="_blank"
+       style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;text-decoration:none;
+              font-family:Arial,sans-serif;font-size:16px;font-weight:700;line-height:44px;
+              padding:0 18px;border-radius:8px;min-width:240px;text-align:center;">
+      ${t("cta")}
+    </a>
     <!--<![endif]-->
   `
     : "";
 
-  // Logo: quitamos height="auto" como atributo; lo ponemos en style
   const logoHtml = LOGO_URL
     ? `
     <tr>
       <td align="center" style="padding: 24px 0 8px 0;">
-        <img src="${LOGO_URL}" width="140" alt="IronHealth"
-             style="display:block;border:0;outline:none;text-decoration:none;height:auto;">
+        <img src="${LOGO_URL}" width="140" height="auto" alt="IronHealth" style="display:block;border:0;outline:none;text-decoration:none;">
       </td>
     </tr>
   `
