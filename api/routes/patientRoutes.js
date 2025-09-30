@@ -12,10 +12,10 @@ router.post('/patients', verifyToken, requireRole(['admin', 'professional']), po
 
 router.get('/patients', verifyToken, requireRole(['admin', 'professional']), getAllPatients);
 
-router.put('/patients/:id/delete', verifyToken, requireRole(['admin']),deletePatient);
+router.put('/patients/:id/delete', verifyToken, requireRole(['admin', 'professional']),deletePatient);
 
 router.get('/patients/:id/edit', verifyToken, getEditPatient);
 
-router.put('/patients/:id/edit', verifyToken, requireRole(['admin']),putEditPatient);
+router.put('/patients/:id/edit', verifyToken, requireRole(['admin', 'professional']),putEditPatient);
 
 export default router;
