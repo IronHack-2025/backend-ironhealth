@@ -134,7 +134,8 @@ export const postNewPatient = async (req, res) => {
           req.body.preferredLang) ||
         (langFromHeader === "en" ? "en" : "es");
 
-      const portalUrl = process.env.PORTAL_URL;
+      // Base del portal del paciente para enlaces en emails (Producción / Local):
+      const portalUrl = process.env.PORTAL_URL || "http://localhost:5173";
 
       // Se agenda en el siguiente tick del event loop (no usamos await)
       setImmediate(() => {

@@ -16,6 +16,9 @@ function pickLang(req) {
   return header === "en" ? "en" : "es";
 }
 
+// Base del portal del paciente para enlaces en emails (Producción / Local):
+const PORTAL_BASE = process.env.PORTAL_URL || "http://localhost:5173";
+
 // GET /api/appointment
 const getAppointments = async (req, res) => {
   try {
@@ -91,7 +94,7 @@ const postAppointments = async (req, res) => {
     const now = new Date();
 
     if (start && end && end <= start) {
-      // Reusamos NAME_MIN_LENGTH como placeholder, con meta explicativa (podemos crear un código específico después)
+      // Placeholder con meta (podéis crear un código específico más adelante)
       validationErrors.push({
         field: "endDate",
         code: VALIDATION_CODES.NAME_MIN_LENGTH,
@@ -128,17 +131,14 @@ const postAppointments = async (req, res) => {
     // HOOK de email de confirmación (NO bloqueante)
     // Programa el envío con setImmediate para no retrasar la respuesta HTTP.
     // Usa la plantilla 'appointment_booked'.
-
-    // Enganche de email para notificar al paciente
     try {
       const lang = pickLang(req);
       const { patientId: pid, professionalId: prid } = savedAppointment;
 
-      // Enviamos en background para no bloquear la respuesta
       setImmediate(() => {
         (async () => {
           try {
-            // 1) Busca paciente y profesional por _id (son strings en tu schema)
+            // 1) Busca paciente y profesional por _id
             const [patient, professional] = await Promise.all([
               Patient.findById(
                 pid,
@@ -153,7 +153,7 @@ const postAppointments = async (req, res) => {
             // Si no hay email del paciente, no enviamos
             if (!patient?.email) return;
 
-            // 2) Nombres a mostrar en el email
+            // 2) Nombres a mostrar en el email + idioma preferido
             const langPref =
               patient?.preferredLang === "en" || patient?.preferredLang === "es"
                 ? patient.preferredLang
@@ -167,7 +167,15 @@ const postAppointments = async (req, res) => {
                 .filter(Boolean)
                 .join(" ") || (langPref === "en" ? "Doctor" : "Profesional");
 
-            // 3) Carga perezosa del servicio y envía plantilla
+            // 3) Construye el deep-link a la cita en el portal
+            //    En local → http://localhost:5173/appointments/:id
+            //    En prod  → https://app.ironhealth.cat/appointments/:id (configurando PORTAL_URL)
+            const appointmentUrl = new URL(
+              `/appointments/${savedAppointment._id}`,
+              PORTAL_BASE
+            ).toString();
+
+            // 4) Carga perezosa del servicio y envía plantilla
             const { emailService } = await import("../services/email/index.js");
 
             await emailService.sendTemplate({
@@ -178,7 +186,8 @@ const postAppointments = async (req, res) => {
                 professionalName,
                 start: savedAppointment.startDate, // Date
                 end: savedAppointment.endDate, // Date
-                location: savedAppointment.location || "Consulta", // si no tienes location, eliminar esta línea
+                location: savedAppointment.location || "Consulta",
+                portalUrl: appointmentUrl, // 👈 botón del email
                 lang: langPref,
               },
             });
