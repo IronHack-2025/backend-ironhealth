@@ -61,11 +61,16 @@ export function appointmentBookedTemplate({
 
   const subject = t("subject");
 
-  // Botón "bulletproof" (compatible Outlook)
+  // === CHANGED: Botón "bulletproof" (VML + tabla con estilos inline) ===
   const buttonHtml = portalUrl
     ? `
     <!--[if mso]>
-    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${portalUrl}" style="height:44px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="${BRAND_COLOR}">
+    <v:roundrect
+      xmlns:v="urn:schemas-microsoft-com:vml"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      href="${portalUrl}"
+      style="height:44px;v-text-anchor:middle;width:240px;"
+      arcsize="12%" stroke="f" fillcolor="${BRAND_COLOR}">
       <w:anchorlock/>
       <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">
         ${t("cta")}
@@ -73,21 +78,39 @@ export function appointmentBookedTemplate({
     </v:roundrect>
     <![endif]-->
     <!--[if !mso]><!-- -->
-    <a href="${portalUrl}" target="_blank"
-       style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;text-decoration:none;
-              font-family:Arial,sans-serif;font-size:16px;font-weight:700;line-height:44px;
-              padding:0 18px;border-radius:8px;min-width:240px;text-align:center;">
-      ${t("cta")}
-    </a>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+      <tr>
+        <td align="center" bgcolor="${BRAND_COLOR}" style="border-radius:8px;">
+          <a href="${portalUrl}" target="_blank"
+             style="
+               display:inline-block;
+               padding:12px 18px;
+               font-family:Arial,sans-serif;
+               font-size:16px;
+               font-weight:700;
+               line-height:20px;
+               color:#ffffff;
+               text-decoration:none;
+               background-color:${BRAND_COLOR};
+               border-radius:8px;
+               mso-padding-alt:0;
+             ">
+            ${t("cta")}
+          </a>
+        </td>
+      </tr>
+    </table>
     <!--<![endif]-->
   `
     : "";
 
+  // === CHANGED: Logo sin height="auto" como atributo; lo movemos al style ===
   const logoHtml = LOGO_URL
     ? `
     <tr>
       <td align="center" style="padding: 24px 0 8px 0;">
-        <img src="${LOGO_URL}" width="140" height="auto" alt="IronHealth" style="display:block;border:0;outline:none;text-decoration:none;">
+        <img src="${LOGO_URL}" width="140" alt="IronHealth"
+             style="display:block;border:0;outline:none;text-decoration:none;height:auto;">
       </td>
     </tr>
   `
@@ -117,18 +140,18 @@ export function appointmentBookedTemplate({
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 10px 0 12px 0;">
                   <tr>
                     <td style="font-family:Arial,sans-serif;font-size:15px;color:${TEXT_COLOR};padding:6px 0;"><b>${t(
-    "start"
-  )}:</b> ${fmt(start)}</td>
+                      "start"
+                    )}:</b> ${fmt(start)}</td>
                   </tr>
                   <tr>
                     <td style="font-family:Arial,sans-serif;font-size:15px;color:${TEXT_COLOR};padding:6px 0;"><b>${t(
-    "end"
-  )}:</b> ${fmt(end)}</td>
+                      "end"
+                    )}:</b> ${fmt(end)}</td>
                   </tr>
                   <tr>
                     <td style="font-family:Arial,sans-serif;font-size:15px;color:${TEXT_COLOR};padding:6px 0;"><b>${t(
-    "place"
-  )}:</b> ${location}</td>
+                      "place"
+                    )}:</b> ${location}</td>
                   </tr>
                 </table>
 

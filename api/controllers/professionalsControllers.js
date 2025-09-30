@@ -2,11 +2,7 @@ import Professional from "../models/professionals.model.js";
 import validateEmail from "../utils/validateEmail.js";
 import getRandomColor from "../utils/assignColor.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
-import {
-  success,
-  error,
-  validationError,
-} from "../middlewares/responseHandler.js";
+import { success, error, validationError } from "../middlewares/responseHandler.js";
 
 export const addProfessional = async (req, res) => {
   try {
