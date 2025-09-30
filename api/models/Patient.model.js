@@ -4,16 +4,28 @@ import nif_valido  from '../utils/validateDNI.js';
 const { Schema } = mongoose;
 
 const patientSchema = new Schema({
-    firstName: {
-        type: String,
-        required: true,
-        maxlength: 50,
-    },
-    lastName: {
-        type: String,
-        required: true,
-        maxlength: 50,
-    },
+  firstName: {
+    type: String,
+    required: true,
+    maxlength: 50,
+  },
+  lastName: {
+    type: String,
+    required: true,
+    maxlength: 50,
+  },
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    validate: {
+      validator: function (phone) {
+        // Must start with +, followed by 11 digits, total length 12
+        return /^\+?\d{7,15}$/.test(phone);
+      },
+      message: (props) => `${props.value} is not a valid phone number!`,
+    },},
     email: {
         type: String,
         required: true,
@@ -66,6 +78,10 @@ const patientSchema = new Schema({
         unique: true,
         sparse: true // Permite null y mantiene unicidad para valores no null
     },
+      active: {
+    type: Boolean,
+    default: true,
+  },
 }, { timestamps: true });
 
 export default  mongoose.model('Patient', patientSchema)

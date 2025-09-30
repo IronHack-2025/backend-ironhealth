@@ -7,11 +7,12 @@ const professions = fs.readFileSync(path.resolve("api/data/professions.json"));
 const professionsData = JSON.parse(professions);
 
 const { Schema } = mongoose;
-const ProfessionalSchema = new Schema({
+const ProfessionalSchema = new Schema(
+  {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    profession: { type: String, required: true, enum: professionsData.professions.map(p => p.code) },
-    specialty: { type: String, required: false, enum: ['', ...professionsData.professions.flatMap(p => p.specialty.map(s => s['specialty-code']))] },
+    profession: { type: String, required: true, enum: professionsData.professions.map((p) => p.code) },
+    specialty: { type: String, required: false, enum: ["", ...professionsData.professions.flatMap((p) => p.specialty.map((s) => s["specialty-code"]))] },
     email: { type: String, required: true, unique: true },
      dni: {
             type: String,
@@ -26,9 +27,13 @@ const ProfessionalSchema = new Schema({
     professionLicenceNumber: { type: String, required: false },
     color: { type: String, required: true },
     imageUrl: {
-        type: String,
-        required: true,
-        default: 'https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png'
+      type: String,
+      required: true,
+      default: "https://res.cloudinary.com/dt7uhxeuk/image/upload/v1758209486/professionals/jqluodx877l67l1gmktx.png",
+    },
+    active: {
+      type: Boolean,
+      default: true,
     },
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
