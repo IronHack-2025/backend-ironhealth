@@ -1,5 +1,5 @@
 import express from 'express';
-import { postNewPatient, getAllPatients, deletePatient, getEditPatient, putEditPatient } from '../controllers/patientControllers.js';
+import { postNewPatient, getAllPatients, deletePatient,  putEditPatient, getPatientById } from '../controllers/patientControllers.js';
 import { getSignature } from '../middlewares/getSignature.js';
 import { verifyToken, requireRole, requireOwnPatientOrAdmin } from '../middlewares/auth.js';
 
@@ -14,8 +14,8 @@ router.get('/patients', verifyToken, requireRole(['admin', 'professional']), get
 
 router.put('/patients/:id/delete', verifyToken, requireRole(['admin', 'professional']),deletePatient);
 
-router.get('/patients/:id/edit', verifyToken, getEditPatient);
-
 router.put('/patients/:id/edit', verifyToken, requireRole(['admin', 'professional']),putEditPatient);
+
+router.get('/patients/:id', verifyToken, requireOwnPatientOrAdmin, getPatientById);
 
 export default router;

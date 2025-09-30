@@ -6,7 +6,13 @@ import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
 import { success, error, validationError } from "../middlewares/responseHandler.js";
 
 export const postNewPatient = async (req, res) => {
-  const { firstName, lastName, email, phone, birthDate, imageUrl, dni } = req.body;
+  const { firstName, lastName, email, phone, birthDate, imageUrl, dni,
+    gender,
+    street,
+    city,
+    postalCode,
+    nationality,
+    emergencyContact } = req.body;
 
   const validationErrors = [];
 
@@ -45,6 +51,34 @@ export const postNewPatient = async (req, res) => {
     validationErrors.push({ field: "dni", code: VALIDATION_CODES.DNI_INVALID_FORMAT });
   }
   // Verificar si el email ya existe
+  if (!['male', 'female', 'non-binary'].includes(gender)) {
+    validationErrors.push({ field: 'gender', code: VALIDATION_CODES.GENDER_INVALID });
+  }
+
+  // Validate street (more flexible - letters, numbers, spaces, common punctuation)
+  if (typeof street !== 'string' || street.trim().length < 2 || street.trim().length > 100 ||
+    !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç0-9\s.,ºª'\-\/()#]+$/.test(street.trim())) {
+    validationErrors.push({ field: 'street', code: VALIDATION_CODES.STREET_INVALID_FORMAT });
+  }
+  if (typeof city !== 'string' || city.trim().length < 2 || city.trim().length > 50 ||
+    !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s'\-]+$/.test(city.trim())) {
+    validationErrors.push({ field: 'city', code: VALIDATION_CODES.CITY_INVALID_FORMAT });
+  }
+
+  // Validate postalCode (Spain 5 digits; change if needed)
+  if (typeof postalCode !== 'string' || !/^\d{5}$/.test(postalCode.trim())) {
+    validationErrors.push({ field: 'postalCode', code: VALIDATION_CODES.POSTAL_CODE_INVALID_FORMAT });
+  }
+
+  // Validate nationality
+  if (nationality && !/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s\-]+$/.test(nationality)) {
+    validationErrors.push({ field: 'nationality', code: VALIDATION_CODES.NATIONALITY_INVALID });
+  }
+  // Validate emergencyContact
+  if (!/^\+?\d{7,15}$/.test(emergencyContact)) {
+    validationErrors.push({ field: 'emergencyContact', code: VALIDATION_CODES.EMERGENCY_CONTACT_INVALID });
+  }
+
   try {
     const existingEmail = await Patient.findOne({ email });
     if (existingEmail) {
@@ -89,6 +123,12 @@ export const postNewPatient = async (req, res) => {
       phone,
       birthDate,
       dni,
+      gender,
+      street,
+      city,
+      postalCode,
+      nationality,
+      emergencyContact,
     };
 
     if (imageUrl) {
@@ -155,8 +195,7 @@ export const deletePatient = async (req, res) => {
     if (!patientDelete) {
       return error(res, MESSAGE_CODES.ERROR.PATIENT_NOT_FOUND || "Patient not found", 404);
     }
-
-    patientDelete.active = !patientDelete.active;
+    patientDelete.active = false;
     await patientDelete.save();
 
     return success(res, patientDelete, MESSAGE_CODES.SUCCESS.PATIENT_DELETED, 200);
@@ -165,7 +204,9 @@ export const deletePatient = async (req, res) => {
   }
 };
 
-export const getEditPatient = async (req, res) => {
+
+
+export const getPatientById = async (req, res) => {
   try {
     const { id } = req.params;
     const patientEdit = await Patient.findOne({ _id: id, active: true });
@@ -182,7 +223,12 @@ export const getEditPatient = async (req, res) => {
 export const putEditPatient = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phone, birthDate, dni, imageUrl } = req.body || {};
+    const { firstName, lastName, email, phone, birthDate, dni, imageUrl, gender,
+      street,
+      city,
+      postalCode,
+      nationality,
+      emergencyContact } = req.body || {};
 
     const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
     if (!id || !isValidObjectId(id)) {
@@ -249,7 +295,7 @@ export const putEditPatient = async (req, res) => {
       return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
-    
+
     const existingDni = await Patient.findOne({
       dni: dni.trim(),
       _id: { $ne: id }, // Excluimos al paciente actual
@@ -276,6 +322,12 @@ export const putEditPatient = async (req, res) => {
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
         birthDate: new Date(birthDate),
+        gender,
+        street: street.trim(),
+        city: city.trim(),
+        postalCode: postalCode.trim(),
+        nationality,
+        emergencyContact: emergencyContact.trim(),
         ...(imageUrl && { imageUrl: imageUrl.trim() }),
       },
       { new: true, runValidators: false }
