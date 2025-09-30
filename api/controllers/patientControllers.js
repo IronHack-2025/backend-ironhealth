@@ -204,21 +204,9 @@ export const deletePatient = async (req, res) => {
   }
 };
 
-export const getPatientById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const patient = await Patient.findById(id);
-    if (!patient) {
-      return error(res, MESSAGE_CODES.ERROR.PATIENT_NOT_FOUND, 404, 'Patient not found');
-    }
-    return success(res, patient, MESSAGE_CODES.SUCCESS.PATIENTS_RETRIEVED);
-  } catch (err) {
-    console.error('Error fetching patient by ID:', err);
-    return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
-  }
-}
 
-export const getEditPatient = async (req, res) => {
+
+export const getPatientById = async (req, res) => {
   try {
     const { id } = req.params;
     const patientEdit = await Patient.findOne({ _id: id, active: true });
