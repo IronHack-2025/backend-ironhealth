@@ -116,7 +116,7 @@ export const postNewPatient = async (req, res) => {
     console.log(`Patient added successfully: ${patient}`);
 
     /**
-     * HOOK de email de bienvenida (NO bloqueante)
+     * HOOK de email de bienvenida al paciente
      * - Detecta idioma preferido:
      *     1) req.body.preferredLang ('es' | 'en'), si viene del front
      *     2) cabecera Accept-Language (en/es); fallback 'es'

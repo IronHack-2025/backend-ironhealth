@@ -112,8 +112,62 @@ export const addProfessional = async (req, res) => {
 
     const savedProfessional = await newProfessional.save();
 
+    /* 
+     * HOOK de email de bienvenida al profesional
+     * - Programa el envío con setImmediate para no retrasar la respuesta HTTP.
+     * - Detecta idioma ('es'|'en') del body o Accept-Language
+     * - Usa template 'professional_welcome'
+     */
+    try {
+      // 1) idioma preferido: req.body.preferredLang > Accept-Language > 'es'
+      const langFromHeader = (req.headers["accept-language"] || "")
+        .slice(0, 2)
+        .toLowerCase();
+      const lang =
+        (req.body?.preferredLang &&
+          ["es", "en"].includes(req.body.preferredLang) &&
+          req.body.preferredLang) ||
+        (langFromHeader === "en" ? "en" : "es");
+
+      // 2) portal base URL y URL específica del profesional
+      const portalBase = process.env.PORTAL_URL || "http://localhost:5173"; // <-- sustituye en prod
+      const base = portalBase.replace(/\/+$/, "");
+      const portalUrl = `${base}/professionals/${savedProfessional._id}`;
+
+      // 3) Envío en background (no await)
+      setImmediate(() => {
+        import("../services/email/index.js")
+          .then(({ emailService }) => {
+            emailService
+              .sendTemplate({
+                template: "professional_welcome",
+                to: savedProfessional.email,
+                data: {
+                  firstName: savedProfessional.firstName,
+                  portalUrl,
+                  lang,
+                },
+              })
+              .catch((err) =>
+                console.error("[EMAIL professional_welcome]", err?.message)
+              );
+          })
+          .catch((err) =>
+            console.error("[EMAIL dynamic import]", err?.message)
+          );
+      });
+    } catch (hookErr) {
+      // Cualquier error al programar el hook no debe romper la creación
+      console.error("[EMAIL professional_welcome schedule]", hookErr?.message);
+    }
+
     // Éxito con sobre estandarizado
-    return success(res, savedProfessional, MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED, 201);
+    return success(
+      res,
+      savedProfessional,
+      MESSAGE_CODES.SUCCESS.PROFESSIONAL_CREATED,
+      201
+    );
   } catch (e) {
     if (e?.code === 11000 && e?.keyPattern?.email) {
       return validationError(
