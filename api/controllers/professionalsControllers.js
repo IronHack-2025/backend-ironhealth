@@ -230,7 +230,7 @@ export const getEditProfessional = async (req, res) => {
 export const putEditProfessional = async (req, res) => {
   try {
     const { id } = req.params; 
-    const { firstName, lastName, profession, specialty, email, professionLicenceNumber, imageUrl } = req.body || {};
+    const { firstName, lastName, profession, specialty, email, professionLicenceNumber, dni, imageUrl } = req.body || {};
 
     const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
     if (!id || !isValidObjectId(id)) {
@@ -277,6 +277,9 @@ export const putEditProfessional = async (req, res) => {
     if (!email || !validateEmail(email)) {
       validationErrors.push({ field: "email", code: VALIDATION_CODES.EMAIL_INVALID_FORMAT });
     }
+    if (!dni || !nif_valido(dni)) {
+      validationErrors.push({ field: "dni", code: VALIDATION_CODES.DNI_INVALID_FORMAT });
+    }
 
     if (professionLicenceNumber && !/^[a-zA-Z0-9]+$/.test(professionLicenceNumber)) {
       validationErrors.push({
@@ -302,6 +305,16 @@ export const putEditProfessional = async (req, res) => {
       return validationError(res, [{ field: "email", code: VALIDATION_CODES.EMAIL_ALREADY_EXISTS }], 409);
     }
 
+    const existingDni = await Professional.findOne({
+      dni: dni.trim(),
+      _id: { $ne: id }, // Excluimos al profesional actual
+    });
+
+    if (existingDni) {
+      return validationError(res, [{ field: "dni", code: VALIDATION_CODES.DNI_ALREADY_EXISTS }], 409);
+    }
+    
+
     const updatedProfessional = await Professional.findByIdAndUpdate(
       id,
       {
@@ -310,6 +323,7 @@ export const putEditProfessional = async (req, res) => {
         profession: profession.trim(),
         specialty: specialty ? specialty.trim() : "",
         email: email.trim(),
+        dni: dni.trim(),
         professionLicenceNumber: professionLicenceNumber ? professionLicenceNumber.trim() : "",
         ...(imageUrl && { imageUrl: imageUrl.trim() }), 
       },

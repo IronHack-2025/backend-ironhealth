@@ -11,7 +11,7 @@ router.get('/professionals', verifyToken, getAllProfessionals);
 
 router.put('/professionals/:id/delete', verifyToken, requireRole(['admin']), deleteProfessional);
 
-router.get('/professionals/:id/edit', verifyToken, getEditProfessional);
+router.get('/professionals/:id/edit', verifyToken, requireRole(['admin']), getEditProfessional);
 
 router.put('/professionals/:id/edit', verifyToken, requireRole(['admin']),putEditProfessional);
 
