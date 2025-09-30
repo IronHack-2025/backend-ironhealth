@@ -1,6 +1,6 @@
 // GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
 
-import Appointment from "../models/Appointment.model.js";
+import Appointment from "../models/appointment.model.js";
 import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
 import { success, error, validationError, } from "../middlewares/responseHandler.js";
 
@@ -79,23 +79,22 @@ const postAppointments = async (req, res) => {
     const now = new Date();
 
     if (start && end && end <= start) {
-      // Reusamos NAME_MIN_LENGTH como placeholder, con meta explicativa (podemos crear un código específico después)
       validationErrors.push({
         field: "endDate",
-        code: VALIDATION_CODES.NAME_MIN_LENGTH,
+        code: VALIDATION_CODES.END_TIME_BEFORE_START_TIME,
         meta: { min: 1, max: 999, hint: "end must be after start" },
       });
     }
     if (start && start < now) {
       validationErrors.push({
         field: "startDate",
-        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+        code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
       }); // placeholder: fecha pasada
     }
     if (end && end < now) {
       validationErrors.push({
         field: "endDate",
-        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+        code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
       }); // placeholder: fecha pasada
     }
 
@@ -201,8 +200,9 @@ const cancelAppointments = async (req, res) => {
 const updateAppointmentNotes = async (req, res) => {
   try {
     const { id } = req.params || {};
-    const { notes } = req.body || {};
+    const { notes, professionalNotes } = req.body || {};
     const oid = /^[a-fA-F0-9]{24}$/;
+    const validationErrors = [];
 
     if (!id || !oid.test(id)) {
       return validationError(
@@ -212,9 +212,27 @@ const updateAppointmentNotes = async (req, res) => {
       );
     }
 
+    // Validar que al menos uno de los campos se proporcione
+    if (!notes && !professionalNotes) {
+      validationErrors.push({
+        field: "notes",
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+      validationErrors.push({
+        field: "professionalNotes", 
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+      return validationError(res, validationErrors, 400);
+    }
+
+    // Construir el objeto de actualización dinámicamente
+    const updateFields = {};
+    if (notes !== undefined) updateFields.notes = notes;
+    if (professionalNotes !== undefined) updateFields.professionalNotes = professionalNotes;
+
     const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
-      { $set: { notes } },
+      { $set: updateFields },
       { new: true }
     );
     if (!updatedAppointment) {
