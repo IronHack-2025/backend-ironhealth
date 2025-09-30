@@ -12,7 +12,7 @@ export const postNewPatient = async (req, res) => {
     city,
     postalCode,
     nationality,
-    emergencyContact, } = req.body;
+    emergencyContact } = req.body;
 
   const validationErrors = [];
 
@@ -235,7 +235,12 @@ export const getEditPatient = async (req, res) => {
 export const putEditPatient = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phone, birthDate, dni, imageUrl } = req.body || {};
+    const { firstName, lastName, email, phone, birthDate, dni, imageUrl, gender,
+      street,
+      city,
+      postalCode,
+      nationality,
+      emergencyContact } = req.body || {};
 
     const isValidObjectId = (id) => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
     if (!id || !isValidObjectId(id)) {
@@ -329,6 +334,12 @@ export const putEditPatient = async (req, res) => {
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
         birthDate: new Date(birthDate),
+        gender,
+        street: street.trim(),
+        city: city.trim(),
+        postalCode: postalCode.trim(),
+        nationality,
+        emergencyContact: emergencyContact.trim(),
         ...(imageUrl && { imageUrl: imageUrl.trim() }),
       },
       { new: true, runValidators: false }
