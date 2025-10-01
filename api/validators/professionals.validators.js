@@ -63,7 +63,10 @@ export const createProfessionalValidation = [
     .isLength({ min: 2 })
     .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
 
-  body('specialty').optional().isLength({ max: 100 }).withMessage(VALIDATION_CODES.NAME_MIN_LENGTH), // Reusing, but a specific code would be better
+  body('specialty')
+    .optional({ checkFalsy: true })
+    .isLength({ max: 100 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH), // Reusing, but a specific code would be better
 
   body('email')
     .trim()
@@ -81,11 +84,14 @@ export const createProfessionalValidation = [
     .custom(checkDniExists),
 
   body('professionLicenceNumber')
-    .optional()
+    .optional({ checkFalsy: true })
     .isAlphanumeric()
     .withMessage(VALIDATION_CODES.NAME_INVALID_CHARACTERS),
 
-  body('imageUrl').optional().isURL().withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
+  body('imageUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
 ];
 
 // Validation for updating a professional
@@ -117,7 +123,10 @@ export const updateProfessionalValidation = [
     .isLength({ min: 2 })
     .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
 
-  body('specialty').optional().isLength({ max: 100 }).withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
+  body('specialty')
+    .optional({ checkFalsy: true })
+    .isLength({ max: 100 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
 
   body('email')
     .trim()
@@ -153,11 +162,23 @@ export const updateProfessionalValidation = [
     }),
 
   body('professionLicenceNumber')
-    .optional()
+    .optional({ checkFalsy: true })
     .isAlphanumeric()
     .withMessage(VALIDATION_CODES.NAME_INVALID_CHARACTERS),
 
-  body('imageUrl').optional().isURL().withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
+  body('professionalNotes')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage(VALIDATION_CODES.NAME_MUST_BE_STRING)
+    .isLength({ max: 1000 })
+    .withMessage(VALIDATION_CODES.NOTES_MAX_LENGTH)
+    .trim()
+    .escape(),
+
+  body('imageUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
 ];
 
 export const professionalIdValidation = [

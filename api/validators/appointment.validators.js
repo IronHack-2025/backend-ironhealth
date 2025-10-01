@@ -65,7 +65,7 @@ export const createAppointmentValidation = [
       return true;
     }),
 
-  body('notes').optional().customSanitizer(notesSanitization),
+  body('notes').optional({ checkFalsy: true }).customSanitizer(notesSanitization),
 ];
 
 export const updateAppointmentNotesValidation = [

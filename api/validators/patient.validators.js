@@ -151,7 +151,10 @@ export const createPatientValidation = [
     .matches(/^\+?\d{7,15}$/)
     .withMessage(VALIDATION_CODES.EMERGENCY_CONTACT_INVALID),
 
-  body('imageUrl').optional().isURL().withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
+  body('imageUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
 ];
 
 // Validation for updating a patient
@@ -289,7 +292,10 @@ export const updatePatientValidation = [
     .matches(/^\+?\d{7,15}$/)
     .withMessage(VALIDATION_CODES.EMERGENCY_CONTACT_INVALID),
 
-  body('imageUrl').optional().isURL().withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
+  body('imageUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
 ];
 
 export const patientIdValidation = [
