@@ -103,6 +103,7 @@ const postAppointments = async (req, res) => {
       startDate: start,
       endDate: end,
       notes,
+      status: { cancelled: false },
     });
     const savedAppointment = await appointment.save();
 
