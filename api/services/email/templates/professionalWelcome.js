@@ -1,11 +1,12 @@
 // Plantilla de bienvenida con estilos inline y botón "bulletproof"
 // Compatible con Outlook (VML + tabla)
 const LOGO_URL = process.env.EMAIL_LOGO_URL || "";
+const LOGO_WIDTH = Number(process.env.EMAIL_LOGO_WIDTH || 400); // px = para imagen imagen 640px
 const BRAND_COLOR = "#2563eb"; // azul IronHealth
-const TEXT_COLOR = "#111827";  // gris muy oscuro
+const TEXT_COLOR = "#111827"; // gris muy oscuro
 const MUTED_COLOR = "#6b7280"; // gris secundario
-const BG_COLOR = "#f3f4f6";    // gris de fondo
-const CARD_BG = "#ffffff";     // fondo del "card"
+const BG_COLOR = "#f3f4f6"; // gris de fondo
+const CARD_BG = "#ffffff"; // fondo del "card"
 const RADIUS = "12px";
 
 /**
@@ -15,8 +16,13 @@ const RADIUS = "12px";
  * @param {string} params.portalUrl       - URL al panel del profesional
  * @param {'es'|'en'} [params.lang='es']  - idioma
  */
-export function professionalWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
-  const safeName = firstName || (lang === "en" ? "Professional" : "Profesional");
+export function professionalWelcomeTemplate({
+  firstName,
+  portalUrl,
+  lang = "es",
+}) {
+  const safeName =
+    firstName || (lang === "en" ? "Professional" : "Profesional");
 
   const t = (key) => {
     const dict = {
@@ -71,12 +77,13 @@ export function professionalWelcomeTemplate({ firstName, portalUrl, lang = "es" 
     <!--<![endif]-->
   `
     : "";
-
+  // Logo sin height="auto" como atributo; lo movemos al style
   const logoHtml = LOGO_URL
     ? `
     <tr>
-      <td align="center" style="padding: 24px 0 8px 0;">
-        <img src="${LOGO_URL}" width="140" height="auto" alt="IronHealth" style="display:block;border:0;outline:none;text-decoration:none;">
+      <td align="center" style="padding:24px 0 8px 0;">
+        <img src="${LOGO_URL}" width="${LOGO_WIDTH}" alt="IronHealth"
+             style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:100%;">
       </td>
     </tr>
   `

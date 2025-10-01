@@ -4,6 +4,7 @@
 import { createAppointmentICS } from "../../../utils/ics.js";
 
 const LOGO_URL = process.env.EMAIL_LOGO_URL || "";
+const LOGO_WIDTH = Number(process.env.EMAIL_LOGO_WIDTH || 400); // px = para imagen imagen 640px
 const BRAND_COLOR = "#2563eb"; // azul IronHealth
 const TEXT_COLOR = "#111827";
 const MUTED_COLOR = "#6b7280";
@@ -104,17 +105,16 @@ export function appointmentBookedTemplate({
   `
     : "";
 
-  // === CHANGED: Logo sin height="auto" como atributo; lo movemos al style ===
-  const logoHtml = LOGO_URL
-    ? `
-    <tr>
-      <td align="center" style="padding: 24px 0 8px 0;">
-        <img src="${LOGO_URL}" width="140" alt="IronHealth"
-             style="display:block;border:0;outline:none;text-decoration:none;height:auto;">
-      </td>
-    </tr>
-  `
-    : "";
+  // Logo sin height="auto" como atributo; lo movemos al style
+  const logoHtml = LOGO_URL ? `
+  <tr>
+    <td align="center" style="padding:24px 0 8px 0;">
+      <img src="${LOGO_URL}" width="${LOGO_WIDTH}" alt="IronHealth"
+           style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-width:100%;">
+    </td>
+  </tr>
+` : "";
+
 
   const html = `
   <div style="margin:0;padding:0;background:${BG_COLOR};">
