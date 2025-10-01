@@ -99,17 +99,17 @@ export function professionalWelcomeTemplate({
                         box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;">
             ${logoHtml}
             <tr>
-              <td style="padding: 24px 24px 8px 24px;">
-                <h1 style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:22px;line-height:1.3;color:${TEXT_COLOR};">
+              <td style="padding: 28px 24px 10px 24px;">
+                <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:22px;line-height:1.3;color:${TEXT_COLOR};">
                   ${t("title")}
                 </h1>
-                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
+                <p style="margin:0 0 12px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
                   ${t("hello")}
                 </p>
-                <p style="margin:0 0 10px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
+                <p style="margin:0 0 12px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
                   ${t("copy1")}
                 </p>
-                <p style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
+                <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
                   ${t("copy2")}
                 </p>
                 <div style="margin: 12px 0 8px 0; text-align:left;">
