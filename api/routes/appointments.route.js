@@ -12,6 +12,11 @@ import {
   appointmentIdValidation,
   validate,
 } from '../validators/appointment.validators.js';
+import { verifyToken,
+  requireRole,
+  requireOwnAppointmentOrAdmin,
+  requireCancelOwnAppointment
+ } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -20,21 +25,39 @@ router.post(
   '/appointment',
   createAppointmentValidation,
   validate, // This middleware checks for validation errors
+  verifyToken,
   postAppointments
 );
 
 // GET /api/appointment
-router.get('/appointment', getAppointments);
+router.get('/appointment',
+   verifyToken, 
+   getAppointments);
 
 // DELETE /api/appointment/:id
-router.delete('/appointment/:id', appointmentIdValidation, validate, deleteAppointments);
+router.delete('/appointment/:id',
+  verifyToken,
+  requireOwnAppointmentOrAdmin,
+  appointmentIdValidation,
+  validate,
+  deleteAppointments
+);
 
 // PUT /api/appointment/:id (cancel)
-router.put('/appointment/:id', appointmentIdValidation, validate, cancelAppointments);
+router.put('/appointment/:id',
+  verifyToken,
+  requireOwnAppointmentOrAdmin,
+  appointmentIdValidation,
+  validate,
+  cancelAppointments
+);
 
 // PATCH /api/appointment/:id/notes
 router.patch(
   '/appointment/:id/notes',
+  verifyToken,
+  requireRole(['admin', 'professional']),
+  appointmentIdValidation,
   updateAppointmentNotesValidation,
   validate,
   updateAppointmentNotes

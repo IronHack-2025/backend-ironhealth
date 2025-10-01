@@ -5,6 +5,8 @@ import cors from 'cors';
 import patientRoutes from './api/routes/patients.route.js';
 import professionalRoutes from './api/routes/professionals.route.js';
 import appointmentsRoutes from './api/routes/appointments.route.js';
+import authRoutes from './api/routes/auth.route.js'
+import userRoutes from './api/routes/user.route.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +22,10 @@ app.use('/api', patientRoutes);
 app.use('/api', professionalRoutes);
 
 app.use('/api', appointmentsRoutes);
+
+app.use("/api", authRoutes);
+
+app.use("/api", userRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
 if (process.env.NODE_ENV !== 'test') {

@@ -18,6 +18,84 @@ const checkEmailUnique = async email => {
 
 // Validation chain for creating a new professional
 export const createProfessionalValidation = [
+    body('dni')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\d{8}[A-Za-z]$/)
+    .withMessage(VALIDATION_CODES.DNI_INVALID_FORMAT)
+    .custom(value => {
+      const letters = 'TRWAGMYFPDXBNJZSQVHLCKET';
+      const number = parseInt(value.slice(0, 8), 10);
+      const letter = value.slice(8).toUpperCase();
+      if (letters[number % 23] !== letter) {
+        throw new Error(VALIDATION_CODES.DNI_INVALID_FORMAT);
+      }
+      return true;
+    }),
+  body('firstName')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.NAME_MUST_BE_STRING)
+    .isLength({ min: 2, max: 50 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
+
+  body('lastName')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.NAME_MUST_BE_STRING)
+    .isLength({ min: 2, max: 50 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
+
+  body('profession')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isLength({ min: 2 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH),
+
+  body('specialty').optional().isLength({ max: 100 }).withMessage(VALIDATION_CODES.NAME_MIN_LENGTH), // Reusing, but a specific code would be better
+
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isEmail()
+    .withMessage(VALIDATION_CODES.EMAIL_INVALID_FORMAT)
+    .custom(checkEmailUnique),
+
+  body('professionLicenceNumber')
+    .optional()
+    .isAlphanumeric()
+    .withMessage(VALIDATION_CODES.NAME_INVALID_CHARACTERS), // Reusing, but a specific code would be better
+];
+
+export const editProfessionalValidation = [
+   body('id')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isMongoId()
+    .withMessage(VALIDATION_CODES.ID_INVALID_FORMAT),
+    body('dni')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\d{8}[A-Za-z]$/)
+    .withMessage(VALIDATION_CODES.DNI_INVALID_FORMAT)
+    .custom(value => {
+      const letters = 'TRWAGMYFPDXBNJZSQVHLCKET';
+      const number = parseInt(value.slice(0, 8), 10);
+      const letter = value.slice(8).toUpperCase();
+      if (letters[number % 23] !== letter) {
+        throw new Error(VALIDATION_CODES.DNI_INVALID_FORMAT);
+      }
+      return true;
+    }),
   body('firstName')
     .trim()
     .notEmpty()

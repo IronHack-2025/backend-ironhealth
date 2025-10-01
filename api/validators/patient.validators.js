@@ -73,10 +73,173 @@ export const createPatientValidation = [
       }
       return true;
     }),
+  body('dni')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\d{8}[A-Za-z]$/)
+    .withMessage(VALIDATION_CODES.DNI_INVALID_FORMAT)
+    .custom(value => {
+      const letters = 'TRWAGMYFPDXBNJZSQVHLCKET';
+      const number = parseInt(value.slice(0, 8), 10);
+      const letter = value.slice(8).toUpperCase();
+      if (letters[number % 23] !== letter) {
+        throw new Error(VALIDATION_CODES.DNI_INVALID_FORMAT);
+      }
+      return true;
+    }),
+  body('gender')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .isIn(['male', 'female', 'non-binary'])
+    .withMessage(VALIDATION_CODES.GENDER_INVALID),
 
+  body('street')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.STREET_MUST_BE_STRING),
+  body('city')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.CITY_MUST_BE_STRING),
+  body('postalCode')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\d{5}$/)
+    .withMessage(VALIDATION_CODES.POSTAL_CODE_INVALID_FORMAT),
+  body('nationality')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.NATIONALITY_MUST_BE_STRING),
+  body('emergencyContact')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage(VALIDATION_CODES.PHONE_INVALID_FORMAT),
   body('imageUrl').optional().isURL().withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
 ];
 
+export const editPatientValidation = [
+  body('id')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isMongoId()
+    .withMessage(VALIDATION_CODES.ID_INVALID_FORMAT),
+  body('firstName')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.NAME_MUST_BE_STRING)
+    .isLength({ min: 2 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH)
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s]+$/)
+    .withMessage(VALIDATION_CODES.NAME_INVALID_CHARACTERS),
+
+  body('lastName')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.NAME_MUST_BE_STRING)
+    .isLength({ min: 2 })
+    .withMessage(VALIDATION_CODES.NAME_MIN_LENGTH)
+    .matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÇç\s]+$/)
+    .withMessage(VALIDATION_CODES.NAME_INVALID_CHARACTERS),
+
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isEmail()
+    .withMessage(VALIDATION_CODES.EMAIL_INVALID_FORMAT)
+    .custom(checkExisting),
+
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage(VALIDATION_CODES.PHONE_INVALID_FORMAT)
+    .custom(checkExisting),
+
+  body('birthDate')
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isISO8601()
+    .withMessage(VALIDATION_CODES.DATE_INVALID_FORMAT)
+    .custom(value => {
+      if (new Date(value) >= new Date()) {
+        throw new Error(VALIDATION_CODES.BIRTHDATE_INVALID);
+      }
+      return true;
+    }),
+  body('dni')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\d{8}[A-Za-z]$/)
+    .withMessage(VALIDATION_CODES.DNI_INVALID_FORMAT)
+    .custom(value => {
+      const letters = 'TRWAGMYFPDXBNJZSQVHLCKET';
+      const number = parseInt(value.slice(0, 8), 10);
+      const letter = value.slice(8).toUpperCase();
+      if (letters[number % 23] !== letter) {
+        throw new Error(VALIDATION_CODES.DNI_INVALID_FORMAT);
+      }
+      return true;
+    }),
+  body('gender')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .isIn(['male', 'female', 'non-binary'])
+    .withMessage(VALIDATION_CODES.GENDER_INVALID),
+
+  body('street')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.STREET_MUST_BE_STRING),
+  body('city')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.CITY_MUST_BE_STRING),
+  body('postalCode')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\d{5}$/)
+    .withMessage(VALIDATION_CODES.POSTAL_CODE_INVALID_FORMAT),
+  body('nationality')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .isString()
+    .withMessage(VALIDATION_CODES.NATIONALITY_MUST_BE_STRING),
+  body('emergencyContact')
+    .trim()
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage(VALIDATION_CODES.PHONE_INVALID_FORMAT),
+  body('imageUrl').optional().isURL().withMessage(VALIDATION_CODES.URL_INVALID_FORMAT),
+];
 // Middleware to handle validation errors (can be reused from appointments)
 export const validate = (req, res, next) => {
   const errors = validationResult(req);

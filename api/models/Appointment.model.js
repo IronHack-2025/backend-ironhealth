@@ -34,7 +34,12 @@ const appointmentSchema = new Schema({
   notes: {
     type: String,
     required: false,
-    maxlength: 500,
+    maxlength: 500
+  },
+  professionalNotes: {
+    type: String,
+    required: false,
+    maxlength: 1000
   },
   status: {
     cancelled: { type: Boolean, default: false },

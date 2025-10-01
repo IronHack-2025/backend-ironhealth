@@ -66,11 +66,16 @@ export const createAppointmentValidation = [
     }),
 
   body('notes').optional().customSanitizer(notesSanitization),
+  body('professionalNotes').optional().customSanitizer(notesSanitization),
 ];
 
 export const updateAppointmentNotesValidation = [
   idValidation,
   body('notes')
+    .notEmpty()
+    .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
+    .customSanitizer(notesSanitization),
+  body('professionalNotes')
     .notEmpty()
     .withMessage(VALIDATION_CODES.FORM_FIELDS_REQUIRED)
     .customSanitizer(notesSanitization),

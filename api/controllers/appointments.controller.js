@@ -1,4 +1,4 @@
-import Appointment from '../models/Appointment.model.js';
+import Appointment from '../models/appointment.model.js';
 import { MESSAGE_CODES } from '../utils/messageCodes.js';
 import { success, error } from '../middlewares/responseHandler.js';
 
@@ -100,17 +100,21 @@ const cancelAppointments = async (req, res) => {
 const updateAppointmentNotes = async (req, res) => {
   try {
     const { id } = req.params; // ID is validated by middleware
-    const { notes } = req.body; // Notes are validated and sanitized by middleware
+    const { notes, professionalNotes } = req.body; // Notes are validated and sanitized by middleware
 
-    const updatedAppointment = await Appointment.findByIdAndUpdate(
-      id,
-      { $set: { notes } },
-      { new: true }
-    );
-
-    if (!updatedAppointment) {
-      return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
-    }
+      const updateFields = {};
+        if (notes !== undefined) updateFields.notes = notes;
+        if (professionalNotes !== undefined) updateFields.professionalNotes = professionalNotes;
+    
+        const updatedAppointment = await Appointment.findByIdAndUpdate(
+          id,
+          { $set: updateFields },
+          { new: true }
+        );
+    
+        if (!updatedAppointment) {
+          return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
+        }
 
     return success(res, updatedAppointment, MESSAGE_CODES.SUCCESS.NOTES_UPDATED, 200);
   } catch (e) {
