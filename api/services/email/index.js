@@ -33,6 +33,22 @@ function normalizeTo(to) {
   return Array.isArray(to) ? to : [to];
 }
 
+// Helpers para comparar emails (case insensitive, ignora espacios)
+function parseEmailAddress(addr) {
+  const [local, domain] = String(addr).toLowerCase().split('@');
+  return { local, domain };
+}
+
+function emailsEqualOrPlusVariant(candidate, base) {
+  const a = parseEmailAddress(candidate);
+  const b = parseEmailAddress(base);
+  if (!a.local || !a.domain || !b.local || !b.domain) return false;
+  if (a.domain !== b.domain) return false;
+  if (a.local === b.local) return true;
+  // Permite variantes con '+': base+algo@dominio
+  return a.local.startsWith(b.local + '+');
+}
+
 /**
  * Devuelve true si "email" está permitido cuando EMAIL_ENABLED=false
  */
@@ -40,8 +56,9 @@ function isAllowedWhenDisabled(email) {
   const e = String(email).toLowerCase();
   return WHITELIST.some((rule) => {
     const r = rule.toLowerCase();
-    if (r.startsWith("*@")) return e.endsWith(r.slice(1)); // *@dominio.com
-    return e === r; // coincidencia exacta
+    if (r.startsWith('*@')) return e.endsWith(r.slice(1)); // *@dominio.com
+    // Coincidencia exacta o variante con '+'
+    return emailsEqualOrPlusVariant(e, r);
   });
 }
 
