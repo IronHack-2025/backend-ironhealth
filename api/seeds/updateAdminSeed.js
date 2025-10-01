@@ -14,8 +14,8 @@ const updateAdmin = async () => {
     // Actualizar la contraseña del admin
     const result = await User.updateOne(
       { email: adminEmail, role: 'admin' },
-      { 
-        password: hashedPassword
+      {
+        password: hashedPassword,
       }
     );
 
@@ -26,13 +26,10 @@ const updateAdmin = async () => {
     } else {
       console.log('Admin user not found');
     }
-
     await mongoose.disconnect();
-    process.exit(0);
   } catch (err) {
     console.error('Error updating admin:', err);
     await mongoose.disconnect();
-    process.exit(1);
   }
 };
 

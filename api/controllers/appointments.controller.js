@@ -1,26 +1,21 @@
 // GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
 
-import Appointment from "../models/appointment.model.js";
-import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
-import { success, error, validationError, } from "../middlewares/responseHandler.js";
+import Appointment from '../models/Appointment.model.js';
+import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
+import { success, error, validationError } from '../middlewares/responseHandler.js';
 
 // GET /api/appointment
 const getAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find().lean();
     // Siempre devolvemos "sobre" aunque la lista esté vacía
-    return success(
-      res,
-      appointments,
-      MESSAGE_CODES.SUCCESS.APPOINTMENTS_RETRIEVED,
-      200
-    );
+    return success(res, appointments, MESSAGE_CODES.SUCCESS.APPOINTMENTS_RETRIEVED, 200);
   } catch (e) {
     return error(
       res,
       MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
       500,
-      e?.message || "Unexpected error"
+      e?.message || 'Unexpected error'
     );
   }
 };
@@ -28,32 +23,31 @@ const getAppointments = async (req, res) => {
 // POST /api/appointment
 const postAppointments = async (req, res) => {
   try {
-    const { professionalId, patientId, startDate, endDate, notes } =
-      req.body || {};
+    const { professionalId, patientId, startDate, endDate, notes } = req.body || {};
     const validationErrors = [];
 
     // Validaciones básicas (reusamos códigos existentes)
     if (!professionalId) {
       validationErrors.push({
-        field: "professionalId",
+        field: 'professionalId',
         code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
       });
     }
     if (!patientId) {
       validationErrors.push({
-        field: "patientId",
+        field: 'patientId',
         code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
       });
     }
     if (!startDate) {
       validationErrors.push({
-        field: "startDate",
+        field: 'startDate',
         code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
       });
     }
     if (!endDate) {
       validationErrors.push({
-        field: "endDate",
+        field: 'endDate',
         code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
       });
     }
@@ -62,13 +56,13 @@ const postAppointments = async (req, res) => {
     const oid = /^[a-fA-F0-9]{24}$/;
     if (professionalId && !oid.test(professionalId)) {
       validationErrors.push({
-        field: "professionalId",
+        field: 'professionalId',
         code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
       });
     }
     if (patientId && !oid.test(patientId)) {
       validationErrors.push({
-        field: "patientId",
+        field: 'patientId',
         code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
       });
     }
@@ -80,24 +74,23 @@ const postAppointments = async (req, res) => {
 
     if (start && end && end <= start) {
       validationErrors.push({
-        field: "endDate",
+        field: 'endDate',
         code: VALIDATION_CODES.END_TIME_BEFORE_START_TIME,
-        meta: { min: 1, max: 999, hint: "end must be after start" },
+        meta: { min: 1, max: 999, hint: 'end must be after start' },
       });
     }
     if (start && start < now) {
       validationErrors.push({
-        field: "startDate",
+        field: 'startDate',
         code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
       }); // placeholder: fecha pasada
     }
     if (end && end < now) {
       validationErrors.push({
-        field: "endDate",
+        field: 'endDate',
         code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
       }); // placeholder: fecha pasada
     }
-
 
     if (validationErrors.length) {
       return validationError(res, validationErrors, 400);
@@ -110,6 +103,7 @@ const postAppointments = async (req, res) => {
       startDate: start,
       endDate: end,
       notes,
+      status: { cancelled: false },
     });
     const savedAppointment = await appointment.save();
 
@@ -119,7 +113,7 @@ const postAppointments = async (req, res) => {
       res,
       MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
       500,
-      e?.message || "Unexpected error"
+      e?.message || 'Unexpected error'
     );
   }
 };
@@ -132,7 +126,7 @@ const deleteAppointments = async (req, res) => {
     if (!id || !oid.test(id)) {
       return validationError(
         res,
-        [{ field: "id", code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
+        [{ field: 'id', code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
         400
       );
     }
@@ -142,18 +136,13 @@ const deleteAppointments = async (req, res) => {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
 
-    return success(
-      res,
-      deleted,
-      MESSAGE_CODES.SUCCESS.APPOINTMENT_DELETED,
-      200
-    );
+    return success(res, deleted, MESSAGE_CODES.SUCCESS.APPOINTMENT_DELETED, 200);
   } catch (e) {
     return error(
       res,
       MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
       500,
-      e?.message || "Unexpected error"
+      e?.message || 'Unexpected error'
     );
   }
 };
@@ -164,11 +153,7 @@ const cancelAppointments = async (req, res) => {
     const { id } = req.params || {};
     const oid = /^[a-fA-F0-9]{24}$/;
     if (!id || !oid.test(id)) {
-      return validationError(
-        res,
-        [{ field: "id", code: VALIDATION_CODES.ID_INVALID_FORMAT }],
-        400
-      );
+      return validationError(res, [{ field: 'id', code: VALIDATION_CODES.ID_INVALID_FORMAT }], 400);
     }
 
     const updatedAppointment = await Appointment.findByIdAndUpdate(
@@ -180,18 +165,13 @@ const cancelAppointments = async (req, res) => {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
 
-    return success(
-      res,
-      updatedAppointment,
-      MESSAGE_CODES.SUCCESS.APPOINTMENT_CANCELLED,
-      200
-    );
+    return success(res, updatedAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CANCELLED, 200);
   } catch (e) {
     return error(
       res,
       MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
       500,
-      e?.message || "Unexpected error"
+      e?.message || 'Unexpected error'
     );
   }
 };
@@ -205,21 +185,17 @@ const updateAppointmentNotes = async (req, res) => {
     const validationErrors = [];
 
     if (!id || !oid.test(id)) {
-      return validationError(
-        res,
-        [{ field: "id", code: VALIDATION_CODES.ID_INVALID_FORMAT }],
-        400
-      );
+      return validationError(res, [{ field: 'id', code: VALIDATION_CODES.ID_INVALID_FORMAT }], 400);
     }
 
     // Validar que al menos uno de los campos se proporcione
     if (!notes && !professionalNotes) {
       validationErrors.push({
-        field: "notes",
+        field: 'notes',
         code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
       });
       validationErrors.push({
-        field: "professionalNotes", 
+        field: 'professionalNotes',
         code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
       });
       return validationError(res, validationErrors, 400);
@@ -245,7 +221,7 @@ const updateAppointmentNotes = async (req, res) => {
       res,
       MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
       500,
-      e?.message || "Unexpected error"
+      e?.message || 'Unexpected error'
     );
   }
 };

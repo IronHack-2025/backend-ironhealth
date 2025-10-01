@@ -1,12 +1,22 @@
 import express from 'express';
-import { postAppointments, getAppointments, deleteAppointments, cancelAppointments, updateAppointmentNotes } from '../controllers/appointmentControllers.js';
-import { validateNotes } from '../middlewares/validateNotes.js';
-import { verifyToken, requireRole, requireOwnAppointmentOrAdmin, requireCancelOwnAppointment } from '../middlewares/auth.js';
+import {
+  postAppointments,
+  getAppointments,
+  deleteAppointments,
+  cancelAppointments,
+  updateAppointmentNotes,
+} from '../controllers/appointments.controller.js';
+import {
+  verifyToken,
+  requireRole,
+  requireOwnAppointmentOrAdmin,
+  requireCancelOwnAppointment,
+} from '../middlewares/auth.js';
 
 const router = express.Router();
 
 // Crear cita - admins y profesionales pueden crear cualquier cita, pacientes pueden crear sus propias citas
-router.post('/appointment', verifyToken, validateNotes, postAppointments);
+router.post('/appointment', verifyToken, postAppointments);
 
 // Ver citas - todos los usuarios autenticados pueden ver citas (filtrado en el controlador)
 router.get('/appointment', verifyToken, getAppointments);
@@ -18,6 +28,11 @@ router.delete('/appointment/:id', verifyToken, requireOwnAppointmentOrAdmin, del
 router.put('/appointment/:id', verifyToken, requireCancelOwnAppointment, cancelAppointments);
 
 // Actualizar notas - solo profesionales y admins pueden modificar cualquier cita
-router.patch('/appointment/:id/notes', verifyToken, requireRole(['admin', 'professional']), validateNotes, updateAppointmentNotes);
+router.patch(
+  '/appointment/:id/notes',
+  verifyToken,
+  requireRole(['admin', 'professional']),
+  updateAppointmentNotes
+);
 
 export default router;

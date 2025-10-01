@@ -1,13 +1,12 @@
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-import patientRoutes from './api/routes/patientRoutes.js'
-import professionalRoutes from './api/routes/professionalsRoutes.js'
-import appointmentsRoutes from './api/routes/appointmentRoutes.js'
-import authRoutes from './api/routes/authRoutes.js'
-import userRoutes from './api/routes/userRoutes.js'
+import patientRoutes from './api/routes/patients.route.js';
+import professionalRoutes from './api/routes/professionals.route.js';
+import appointmentsRoutes from './api/routes/appointments.route.js';
+import authRoutes from './api/routes/auth.route.js';
+import userRoutes from './api/routes/users.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,31 +17,36 @@ app.use(express.json());
 
 // Usar la arquitectura MVC que hemos visto en clase. No va a hacer vistas como tal (no hay EJS), pero el JSON que devuelven los endpoints se puede llegar a considerar una especie de vista en este modelo.
 
-app.use("/api", patientRoutes);
+app.use('/api', patientRoutes);
 
-app.use("/api", professionalRoutes);
+app.use('/api', professionalRoutes);
 
-app.use("/api", appointmentsRoutes);
+app.use('/api', appointmentsRoutes);
 
-app.use("/api", authRoutes);
+app.use('/api', authRoutes);
 
-app.use("/api", userRoutes);
+app.use('/api', userRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Conectado a MongoDB Atlas'))
-.catch((err) => console.error('Error de conexión a MongoDB:', err));
-
-
+if (process.env.NODE_ENV !== 'test') {
+  mongoose
+    .connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => console.log('Conectado a MongoDB Atlas'))
+    .catch(err => console.error('Error de conexión a MongoDB:', err));
+}
 
 // Endpoint de ejemplo
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Servidor escuchando en puerto ${PORT}`);
+  });
+}
+
+export default app;

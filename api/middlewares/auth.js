@@ -2,22 +2,21 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.model.js';
 import { MESSAGE_CODES } from '../utils/messageCodes.js';
 import { error } from './responseHandler.js';
-import Appointment from '../models/appointment.model.js';
-
+import Appointment from '../models/Appointment.model.js';
 
 export const verifyToken = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
       return error(res, MESSAGE_CODES.ERROR.TOKEN_NOT_PROVIDED, 401);
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-   // Buscar usuario sin populate inicialmente
+
+    // Buscar usuario sin populate inicialmente
     const user = await User.findById(decoded.id).select('-password');
-    
+
     if (!user || !user.isActive) {
       return error(res, MESSAGE_CODES.ERROR.INVALID_USER, 401);
     }
@@ -33,16 +32,16 @@ export const verifyToken = async (req, res, next) => {
       id: user._id,
       role: user.role,
       profileId: user.profileId,
-      profile: populatedProfile // Aquí tenemos toda la información del Professional/Patient
+      profile: populatedProfile, // Aquí tenemos toda la información del Professional/Patient
     };
-    
+
     next();
   } catch (err) {
     return error(res, MESSAGE_CODES.ERROR.INVALID_TOKEN, 401);
   }
 };
 
-export const requireRole = (roles) => {
+export const requireRole = roles => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return error(res, MESSAGE_CODES.ERROR.INSUFFICIENT_PERMISSIONS, 403);
@@ -53,50 +52,50 @@ export const requireRole = (roles) => {
 
 export const requireOwnProfile = (req, res, next) => {
   const profileId = req.params.id;
-  
+
   if (req.user.profileId.toString() !== profileId && req.user.role !== 'admin') {
     return error(res, MESSAGE_CODES.ERROR.UNAUTHORIZED_PROFILE_ACCESS, 403);
   }
-  
+
   next();
 };
 
 // Middleware para verificar que el usuario puede acceder/modificar un paciente específico
 export const requireOwnPatientOrAdmin = (req, res, next) => {
   const patientId = req.params.id;
-  
+
   // Los admins pueden acceder a cualquier paciente
   if (req.user.role === 'admin') {
     return next();
   }
-  
+
   // Los profesionales pueden acceder a cualquier paciente (para gestionar citas)
   if (req.user.role === 'professional') {
     return next();
   }
-  
+
   // Los pacientes solo pueden acceder a su propio perfil
   if (req.user.role === 'patient' && req.user.profileId.toString() === patientId) {
     return next();
   }
-  
+
   return error(res, MESSAGE_CODES.ERROR.UNAUTHORIZED_PROFILE_ACCESS, 403);
 };
 
 // Middleware para verificar que el usuario puede acceder/modificar un profesional específico
 export const requireOwnProfessionalOrAdmin = (req, res, next) => {
   const professionalId = req.params.id;
-  
+
   // Los admins pueden acceder a cualquier profesional
   if (req.user.role === 'admin') {
     return next();
   }
-  
+
   // Los profesionales solo pueden acceder a su propio perfil
   if (req.user.role === 'professional' && req.user.profileId.toString() === professionalId) {
     return next();
   }
-  
+
   return error(res, MESSAGE_CODES.ERROR.UNAUTHORIZED_PROFILE_ACCESS, 403);
 };
 
@@ -104,17 +103,17 @@ export const requireOwnProfessionalOrAdmin = (req, res, next) => {
 export const requireOwnAppointmentOrAdmin = async (req, res, next) => {
   try {
     const appointmentId = req.params.id;
-    
+
     // Los admins pueden acceder a cualquier cita
     if (req.user.role === 'admin') {
       return next();
     }
-    
+
     // Los profesionales pueden acceder a cualquier cita
     if (req.user.role === 'professional') {
       return next();
     }
-    
+
     // Los pacientes solo pueden acceder a sus propias citas
     if (req.user.role === 'patient') {
       const appointment = await Appointment.findById(appointmentId);
@@ -126,7 +125,7 @@ export const requireOwnAppointmentOrAdmin = async (req, res, next) => {
       }
       return next();
     }
-    
+
     return error(res, MESSAGE_CODES.ERROR.UNAUTHORIZED_ACCESS, 403);
   } catch (err) {
     return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
@@ -137,12 +136,12 @@ export const requireOwnAppointmentOrAdmin = async (req, res, next) => {
 export const requireCancelOwnAppointment = async (req, res, next) => {
   try {
     const appointmentId = req.params.id;
-    
+
     // Los admins y profesionales pueden cancelar cualquier cita
     if (req.user.role === 'admin' || req.user.role === 'professional') {
       return next();
     }
-    
+
     // Los pacientes solo pueden cancelar sus propias citas
     if (req.user.role === 'patient') {
       const appointment = await Appointment.findById(appointmentId);
@@ -154,7 +153,7 @@ export const requireCancelOwnAppointment = async (req, res, next) => {
       }
       return next();
     }
-    
+
     return error(res, MESSAGE_CODES.ERROR.UNAUTHORIZED_ACCESS, 403);
   } catch (err) {
     return error(res, MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR, 500, err.message);
