@@ -2,11 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-// import patientRoutes from './api/routes/patientRoutes.js';
-import professionalRoutes from './api/routes/professionalsRoutes.js';
-import appointmentsRoutes from './api/routes/appointmentRoutes.js';
-import authRoutes from './api/routes/authRoutes.js';
-import userRoutes from './api/routes/userRoutes.js';
+import patientRoutes from './api/routes/patients.route.js';
+import professionalRoutes from './api/routes/professionals.route.js';
+import appointmentsRoutes from './api/routes/appointments.route.js';
+import authRoutes from './api/routes/auth.route.js';
+import userRoutes from './api/routes/users.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +17,7 @@ app.use(express.json());
 
 // Usar la arquitectura MVC que hemos visto en clase. No va a hacer vistas como tal (no hay EJS), pero el JSON que devuelven los endpoints se puede llegar a considerar una especie de vista en este modelo.
 
-// app.use('/api', patientRoutes);
+app.use('/api', patientRoutes);
 
 app.use('/api', professionalRoutes);
 

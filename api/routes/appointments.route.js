@@ -7,36 +7,31 @@ import {
   updateAppointmentNotes,
 } from '../controllers/appointments.controller.js';
 import {
-  createAppointmentValidation,
-  updateAppointmentNotesValidation,
-  appointmentIdValidation,
-  validate,
-} from '../validators/appointment.validators.js';
+  verifyToken,
+  requireRole,
+  requireOwnAppointmentOrAdmin,
+  requireCancelOwnAppointment,
+} from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// POST /api/appointment
-router.post(
-  '/appointment',
-  createAppointmentValidation,
-  validate, // This middleware checks for validation errors
-  postAppointments
-);
+// Crear cita - admins y profesionales pueden crear cualquier cita, pacientes pueden crear sus propias citas
+router.post('/appointment', verifyToken, postAppointments);
 
-// GET /api/appointment
-router.get('/appointment', getAppointments);
+// Ver citas - todos los usuarios autenticados pueden ver citas (filtrado en el controlador)
+router.get('/appointment', verifyToken, getAppointments);
 
-// DELETE /api/appointment/:id
-router.delete('/appointment/:id', appointmentIdValidation, validate, deleteAppointments);
+// Eliminar cita - solo la propia cita (pacientes) o cualquier cita (admin/professional)
+router.delete('/appointment/:id', verifyToken, requireOwnAppointmentOrAdmin, deleteAppointments);
 
-// PUT /api/appointment/:id (cancel)
-router.put('/appointment/:id', appointmentIdValidation, validate, cancelAppointments);
+// Cancelar cita - admins y profesionales pueden cancelar cualquier cita, pacientes solo las propias
+router.put('/appointment/:id', verifyToken, requireCancelOwnAppointment, cancelAppointments);
 
-// PATCH /api/appointment/:id/notes
+// Actualizar notas - solo profesionales y admins pueden modificar cualquier cita
 router.patch(
   '/appointment/:id/notes',
-  updateAppointmentNotesValidation,
-  validate,
+  verifyToken,
+  requireRole(['admin', 'professional']),
   updateAppointmentNotes
 );
 

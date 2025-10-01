@@ -40,9 +40,7 @@ function getRandomColor() {
     lightness = 6 + Math.random() * 40; // 6–45%
   }
 
-  return `hsl(${hue.toFixed(0)}, ${saturation.toFixed(0)}%, ${lightness.toFixed(
-    0
-  )}%)`;
+  return `hsl(${hue.toFixed(0)}, ${saturation.toFixed(0)}%, ${lightness.toFixed(0)}%)`;
 }
 
 export default getRandomColor;

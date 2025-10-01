@@ -1,11 +1,14 @@
+// GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
+
 import Appointment from '../models/Appointment.model.js';
-import { MESSAGE_CODES } from '../utils/messageCodes.js';
-import { success, error } from '../middlewares/responseHandler.js';
+import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
+import { success, error, validationError } from '../middlewares/responseHandler.js';
 
 // GET /api/appointment
 const getAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find().lean();
+    // Siempre devolvemos "sobre" aunque la lista esté vacía
     return success(res, appointments, MESSAGE_CODES.SUCCESS.APPOINTMENTS_RETRIEVED, 200);
   } catch (e) {
     return error(
@@ -20,26 +23,91 @@ const getAppointments = async (req, res) => {
 // POST /api/appointment
 const postAppointments = async (req, res) => {
   try {
-    // Data is already validated and sanitized by express-validator middleware
-    const { professionalId, patientId, startDate, endDate, notes } = req.body;
+    const { professionalId, patientId, startDate, endDate, notes } = req.body || {};
+    const validationErrors = [];
 
-    const newAppointment = new Appointment({
+    // Validaciones básicas (reusamos códigos existentes)
+    if (!professionalId) {
+      validationErrors.push({
+        field: 'professionalId',
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+    if (!patientId) {
+      validationErrors.push({
+        field: 'patientId',
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+    if (!startDate) {
+      validationErrors.push({
+        field: 'startDate',
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+    if (!endDate) {
+      validationErrors.push({
+        field: 'endDate',
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+    }
+
+    // Validación simple de ObjectId (reutilizo NAME_INVALID_CHARACTERS como placeholder)
+    const oid = /^[a-fA-F0-9]{24}$/;
+    if (professionalId && !oid.test(professionalId)) {
+      validationErrors.push({
+        field: 'professionalId',
+        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+      });
+    }
+    if (patientId && !oid.test(patientId)) {
+      validationErrors.push({
+        field: 'patientId',
+        code: VALIDATION_CODES.NAME_INVALID_CHARACTERS,
+      });
+    }
+
+    // Validación fechas
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    const now = new Date();
+
+    if (start && end && end <= start) {
+      validationErrors.push({
+        field: 'endDate',
+        code: VALIDATION_CODES.END_TIME_BEFORE_START_TIME,
+        meta: { min: 1, max: 999, hint: 'end must be after start' },
+      });
+    }
+    if (start && start < now) {
+      validationErrors.push({
+        field: 'startDate',
+        code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
+      }); // placeholder: fecha pasada
+    }
+    if (end && end < now) {
+      validationErrors.push({
+        field: 'endDate',
+        code: VALIDATION_CODES.APPOINTMENT_IN_PAST,
+      }); // placeholder: fecha pasada
+    }
+
+    if (validationErrors.length) {
+      return validationError(res, validationErrors, 400);
+    }
+
+    // Si todo va bien crea la cita
+    const appointment = new Appointment({
       professionalId,
       patientId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: start,
+      endDate: end,
       notes,
-      status: { cancelled: false },
     });
+    const savedAppointment = await appointment.save();
 
-    await newAppointment.save();
-
-    return success(res, newAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
+    return success(res, savedAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
   } catch (e) {
-    // Handle potential conflict errors (e.g., duplicate appointments)
-    if (e.code === 11000) {
-      return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_CONFLICT, 409, 'Appointment time conflict');
-    }
     return error(
       res,
       MESSAGE_CODES.ERROR.INTERNAL_SERVER_ERROR,
@@ -52,9 +120,17 @@ const postAppointments = async (req, res) => {
 // DELETE /api/appointment/:id
 const deleteAppointments = async (req, res) => {
   try {
-    const { id } = req.params; // ID is validated by middleware
-    const deleted = await Appointment.findByIdAndDelete(id);
+    const { id } = req.params || {};
+    const oid = /^[a-fA-F0-9]{24}$/;
+    if (!id || !oid.test(id)) {
+      return validationError(
+        res,
+        [{ field: 'id', code: VALIDATION_CODES.NAME_INVALID_CHARACTERS }],
+        400
+      );
+    }
 
+    const deleted = await Appointment.findByIdAndDelete(id);
     if (!deleted) {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
@@ -73,14 +149,17 @@ const deleteAppointments = async (req, res) => {
 // PUT /api/appointment/:id  (cancelar)
 const cancelAppointments = async (req, res) => {
   try {
-    const { id } = req.params; // ID is validated by middleware
+    const { id } = req.params || {};
+    const oid = /^[a-fA-F0-9]{24}$/;
+    if (!id || !oid.test(id)) {
+      return validationError(res, [{ field: 'id', code: VALIDATION_CODES.ID_INVALID_FORMAT }], 400);
+    }
 
     const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
       { $set: { status: { cancelled: true, timestamp: new Date() } } },
       { new: true }
     );
-
     if (!updatedAppointment) {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
@@ -99,15 +178,38 @@ const cancelAppointments = async (req, res) => {
 // PATCH /api/appointment/:id/notes  (actualizar notas)
 const updateAppointmentNotes = async (req, res) => {
   try {
-    const { id } = req.params; // ID is validated by middleware
-    const { notes } = req.body; // Notes are validated and sanitized by middleware
+    const { id } = req.params || {};
+    const { notes, professionalNotes } = req.body || {};
+    const oid = /^[a-fA-F0-9]{24}$/;
+    const validationErrors = [];
+
+    if (!id || !oid.test(id)) {
+      return validationError(res, [{ field: 'id', code: VALIDATION_CODES.ID_INVALID_FORMAT }], 400);
+    }
+
+    // Validar que al menos uno de los campos se proporcione
+    if (!notes && !professionalNotes) {
+      validationErrors.push({
+        field: 'notes',
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+      validationErrors.push({
+        field: 'professionalNotes',
+        code: VALIDATION_CODES.FORM_FIELDS_REQUIRED,
+      });
+      return validationError(res, validationErrors, 400);
+    }
+
+    // Construir el objeto de actualización dinámicamente
+    const updateFields = {};
+    if (notes !== undefined) updateFields.notes = notes;
+    if (professionalNotes !== undefined) updateFields.professionalNotes = professionalNotes;
 
     const updatedAppointment = await Appointment.findByIdAndUpdate(
       id,
-      { $set: { notes } },
+      { $set: updateFields },
       { new: true }
     );
-
     if (!updatedAppointment) {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
