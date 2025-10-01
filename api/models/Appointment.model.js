@@ -22,23 +22,28 @@ const appointmentSchema = new Schema({
       },
       message: props => `${props.value} is not a valid ID!`,
     },
-  },
-  startDate: {
-    type: Date,
-    required: true,
-  },
-  endDate: {
-    type: Date,
-    required: true,
-  },
-  notes: {
-    type: String,
-    required: false,
-    maxlength: 500,
-  },
-  status: {
-    cancelled: { type: Boolean, default: false },
-    timestamp: Date,
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+    },
+    notes: {
+      type: String,
+      required: false,
+      maxlength: 500,
+    },
+    professionalNotes: {
+      type: String,
+      required: false,
+      maxlength: 1000,
+    },
+    status: {
+      cancelled: { type: Boolean, default: false },
+      timestamp: Date,
+    },
   },
 });
 
