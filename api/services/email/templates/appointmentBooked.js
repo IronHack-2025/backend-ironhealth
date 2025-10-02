@@ -5,7 +5,7 @@ import { createAppointmentICS } from "../../../utils/ics.js";
 
 const LOGO_URL = process.env.EMAIL_LOGO_URL || "";
 const LOGO_WIDTH = Number(process.env.EMAIL_LOGO_WIDTH || 400); // px = para imagen imagen 640px
-const BRAND_COLOR = "#2563eb"; // azul IronHealth
+const BRAND_COLOR = "#2a5fa6"; // azul IronHealth
 const TEXT_COLOR = "#111827";
 const MUTED_COLOR = "#6b7280";
 const BG_COLOR = "#f3f4f6";

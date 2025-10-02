@@ -7,7 +7,7 @@ import { resendSend } from "./providers/resendProvider.js";
 // Flags de seguridad/levers de configuración
 const EMAIL_ENABLED =
   String(process.env.EMAIL_ENABLED || "").toLowerCase() === "true";
-const FROM = process.env.EMAIL_FROM || "no-reply@example.com"; // NOTE: lo usa el provider (resendProvider.js)
+const FROM = process.env.EMAIL_FROM || "no-reply@example.com"; // NOTA: lo usa el provider (resendProvider.js)
 
 // Kill-switch global para desactivar todos los envíos (dev y prod)
 const EMAIL_DISABLE_ALL =
@@ -35,7 +35,7 @@ function normalizeTo(to) {
 
 // Helpers para comparar emails (case insensitive, ignora espacios)
 function parseEmailAddress(addr) {
-  const [local, domain] = String(addr).toLowerCase().split('@');
+  const [local, domain] = String(addr).toLowerCase().split("@");
   return { local, domain };
 }
 
@@ -46,7 +46,7 @@ function emailsEqualOrPlusVariant(candidate, base) {
   if (a.domain !== b.domain) return false;
   if (a.local === b.local) return true;
   // Permite variantes con '+': base+algo@dominio
-  return a.local.startsWith(b.local + '+');
+  return a.local.startsWith(b.local + "+");
 }
 
 /**
@@ -56,7 +56,7 @@ function isAllowedWhenDisabled(email) {
   const e = String(email).toLowerCase();
   return WHITELIST.some((rule) => {
     const r = rule.toLowerCase();
-    if (r.startsWith('*@')) return e.endsWith(r.slice(1)); // *@dominio.com
+    if (r.startsWith("*@")) return e.endsWith(r.slice(1)); // *@dominio.com
     // Coincidencia exacta o variante con '+'
     return emailsEqualOrPlusVariant(e, r);
   });
@@ -124,7 +124,7 @@ async function sendRaw({ to, subject, html, text, attachments }) {
     }
   }
 
-  // Log breve para ver decisión
+  // Log breve para ver decisión de envío
   const allowed = canSend(toList);
   console.log("[EMAIL]", {
     enabled: EMAIL_ENABLED,
@@ -169,7 +169,6 @@ export const emailService = {
     if (!template) throw new Error("TEMPLATE_REQUIRED");
 
     switch (template) {
-
       // Bienvenida paciente
       case "patient_welcome": {
         // Import dinámico para cargar solo cuando se usa esa plantilla
