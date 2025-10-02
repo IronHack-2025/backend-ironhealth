@@ -19,7 +19,7 @@ export function patientWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
         title: "Bienvenido/a a IronHealth",
         hello: `Hola ${safeName},`,
         copy1:
-          "Gracias por registrarte en <b>IronHealth</b>. A partir de ahora podrás gestionar tus citas, ver tus profesionales y mantener tus datos al día.",
+          "Gracias por registrarte en <b>IronHealth</b>. A partir de ahora podrás gestionar tus citas, ver tus profesionales y mantener tus datos al día. Tus credenciales de acceso son tu email como nombre de usuario y tu DNI como contraseña.",
         copy2:
           "Si tienes cualquier duda, responde a este correo y nuestro equipo te ayudará.",
         cta: "Acceder a mi Panel",
@@ -31,7 +31,7 @@ export function patientWelcomeTemplate({ firstName, portalUrl, lang = "es" }) {
         title: "Welcome to IronHealth",
         hello: `Hi ${safeName},`,
         copy1:
-          "Thanks for signing up to <b>IronHealth</b>. From now on you can manage your appointments, view your professionals and keep your data up to date.",
+          "Thanks for signing up to <b>IronHealth</b>. From now on you can manage your appointments, view your professionals and keep your data up to date. Your login credentials are your email as username and your ID as password.",
         copy2:
           "If you have any questions, just reply to this email and our team will assist you.",
         cta: "Go to my Dashboard",

@@ -31,7 +31,7 @@ export function professionalWelcomeTemplate({
         title: "Bienvenido/a al portal de profesionales",
         hello: `Hola ${safeName},`,
         copy1:
-          "Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil.",
+          "Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil. Tus credenciales de acceso son tu email como nombre de usuario y tu DNI como contraseña.",
         copy2:
           "Si tienes cualquier duda, responde a este correo y nuestro equipo te ayudará.",
         cta: "Acceder a mi Panel",
@@ -43,7 +43,7 @@ export function professionalWelcomeTemplate({
         title: "Welcome to the professional portal",
         hello: `Hi ${safeName},`,
         copy1:
-          "Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile.",
+          "Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile. Your login credentials are your email as username and your ID as password.",
         copy2:
           "If you have any questions, just reply to this email and our team will assist you.",
         cta: "Go to my Dashboard",
