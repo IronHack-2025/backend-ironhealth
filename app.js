@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import serverless from 'serverless-http';
 
 import patientRoutes from './api/routes/patients.route.js';
 import professionalRoutes from './api/routes/professionals.route.js';
@@ -50,3 +51,5 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 export default app;
+
+export const handler = serverless(app);
