@@ -58,7 +58,7 @@ export const postNewPatient = async (req, res) => {
     await user.save();
     console.log(`✅ User created with email: ${email}`);
 
- /**
+    /**
      * HOOK de email de bienvenida al paciente
      * - Detecta idioma preferido:
      *     1) req.body.preferredLang ('es' | 'en'), si viene del front
@@ -67,45 +67,39 @@ export const postNewPatient = async (req, res) => {
      * - Usa la plantilla 'patient_welcome'.
      */
 
- try {
-  const langFromHeader = (req.headers["accept-language"] || "")
-    .slice(0, 2)
-    .toLowerCase();
-  const lang =
-    (req.body?.preferredLang &&
-      ["es", "en"].includes(req.body.preferredLang) &&
-      req.body.preferredLang) ||
-    (langFromHeader === "en" ? "en" : "es");
+    try {
+      const langFromHeader = (req.headers['accept-language'] || '').slice(0, 2).toLowerCase();
+      const lang =
+        (req.body?.preferredLang &&
+          ['es', 'en'].includes(req.body.preferredLang) &&
+          req.body.preferredLang) ||
+        (langFromHeader === 'en' ? 'en' : 'es');
 
-  // Base del portal del paciente para enlaces en emails (Producción / Local):
-  const portalUrl = process.env.PORTAL_URL || "http://localhost:5173";
+      // Base del portal del paciente para enlaces en emails (Producción / Local):
+      const portalUrl = process.env.PORTAL_URL || 'http://localhost:5173';
 
-  // Se agenda en el siguiente tick del event loop (no usamos await)
-  setImmediate(() => {
-    import("../services/email/index.js")
-      .then(({ emailService }) => {
-        emailService
-          .sendTemplate({
-            template: "patient_welcome",
-            to: patient.email, // correo del nuevo paciente
-            data: {
-              firstName: patient.firstName, // datos para la plantilla
-              portalUrl,
-              lang,
-            },
+      // Se agenda en el siguiente tick del event loop (no usamos await)
+      setImmediate(() => {
+        import('../services/email/index.js')
+          .then(({ emailService }) => {
+            emailService
+              .sendTemplate({
+                template: 'patient_welcome',
+                to: patient.email, // correo del nuevo paciente
+                data: {
+                  firstName: patient.firstName, // datos para la plantilla
+                  portalUrl,
+                  lang,
+                },
+              })
+              .catch(err => console.error('[EMAIL patient_welcome]', err?.message));
           })
-          .catch((err) =>
-            console.error("[EMAIL patient_welcome]", err?.message)
-          );
-      })
-      .catch((err) =>
-        console.error("[EMAIL dynamic import]", err?.message)
-      );
-  });
-} catch (hookErr) {
-  // Cualquier error al programar el hook no debe romper la creación
-  console.error("[EMAIL patient_welcome schedule]", hookErr?.message);
-}
+          .catch(err => console.error('[EMAIL dynamic import]', err?.message));
+      });
+    } catch (hookErr) {
+      // Cualquier error al programar el hook no debe romper la creación
+      console.error('[EMAIL patient_welcome schedule]', hookErr?.message);
+    }
 
     // 3. Update patient with user reference
     await Patient.findByIdAndUpdate(patient._id, { userId: user._id });

@@ -1,23 +1,21 @@
 // GET y POST, DELETE, PUT(cancel), PATCH(notes) estandarizados
 
-import Appointment from "../models/Appointment.model.js";
-import Patient from "../models/patient.model.js";
-import Professional from "../models/professionals.model.js";
-import { MESSAGE_CODES, VALIDATION_CODES } from "../utils/messageCodes.js";
-import { success, error, validationError } from "../middlewares/responseHandler.js";
+import Appointment from '../models/Appointment.model.js';
+import Patient from '../models/Patient.model.js';
+import Professional from '../models/professionals.model.js';
+import { MESSAGE_CODES, VALIDATION_CODES } from '../utils/messageCodes.js';
+import { success, error, validationError } from '../middlewares/responseHandler.js';
 
 // Helper para detectar idioma preferido (es/en) del paciente
 function pickLang(req) {
   const bodyLang = req?.body?.preferredLang;
-  if (bodyLang === "en" || bodyLang === "es") return bodyLang;
-  const header = (req.headers["accept-language"] || "")
-    .slice(0, 2)
-    .toLowerCase();
-  return header === "en" ? "en" : "es";
+  if (bodyLang === 'en' || bodyLang === 'es') return bodyLang;
+  const header = (req.headers['accept-language'] || '').slice(0, 2).toLowerCase();
+  return header === 'en' ? 'en' : 'es';
 }
 
 // Base del portal del paciente para enlaces en emails (Producción / Local):
-const PORTAL_BASE = process.env.PORTAL_URL || "http://localhost:5173";
+const PORTAL_BASE = (process.env.PORTAL_URL || 'http://localhost:5173').replace(/\/+$/, '');
 
 // GET /api/appointment
 const getAppointments = async (req, res) => {
@@ -135,14 +133,8 @@ const postAppointments = async (req, res) => {
           try {
             // 1) Busca paciente y profesional por _id
             const [patient, professional] = await Promise.all([
-              Patient.findById(
-                pid,
-                "firstName lastName email preferredLang"
-              ).lean(),
-              Professional.findById(
-                prid,
-                "firstName lastName profession specialty"
-              ).lean(),
+              Patient.findById(pid, 'firstName lastName email preferredLang').lean(),
+              Professional.findById(prid, 'firstName lastName profession specialty').lean(),
             ]);
 
             // Si no hay email del paciente, no enviamos
@@ -150,57 +142,47 @@ const postAppointments = async (req, res) => {
 
             // 2) Nombres a mostrar en el email + idioma preferido
             const langPref =
-              patient?.preferredLang === "en" || patient?.preferredLang === "es"
+              patient?.preferredLang === 'en' || patient?.preferredLang === 'es'
                 ? patient.preferredLang
                 : lang;
             const patientName =
-              [patient?.firstName, patient?.lastName]
-                .filter(Boolean)
-                .join(" ") || (langPref === "en" ? "Patient" : "Paciente");
+              [patient?.firstName, patient?.lastName].filter(Boolean).join(' ') ||
+              (langPref === 'en' ? 'Patient' : 'Paciente');
             const professionalName =
-              [professional?.firstName, professional?.lastName]
-                .filter(Boolean)
-                .join(" ") || (langPref === "en" ? "Doctor" : "Profesional");
+              [professional?.firstName, professional?.lastName].filter(Boolean).join(' ') ||
+              (langPref === 'en' ? 'Doctor' : 'Profesional');
 
             // 3) Construye el deep-link a la cita en el portal
             //    En local → http://localhost:5173/appointments/:id
-            //    En prod  → https://app.ironhealth.cat/appointments/:id (configurando PORTAL_URL)
-            const appointmentUrl = new URL(
-              `/appointments/${savedAppointment._id}`,
-              PORTAL_BASE
-            ).toString();
+            //    En prod  → https://ironhealth.cat/appointments/:id (configurando PORTAL_URL)
+            const appointmentUrl = `${PORTAL_BASE}/appointments/${savedAppointment._id}`;
 
             // 4) Carga perezosa del servicio y envía plantilla
-            const { emailService } = await import("../services/email/index.js");
+            const { emailService } = await import('../services/email/index.js');
 
             await emailService.sendTemplate({
-              template: "appointment_booked",
+              template: 'appointment_booked',
               to: patient.email,
               data: {
                 patientName,
                 professionalName,
                 start: savedAppointment.startDate, // Date
                 end: savedAppointment.endDate, // Date
-                location: savedAppointment.location || "Consulta",
-                portalUrl: appointmentUrl, // 👈 botón del email
+                location: savedAppointment.location || 'Consulta',
+                portalUrl: appointmentUrl, // botón del email
                 lang: langPref,
               },
             });
           } catch (err) {
-            console.error("[EMAIL appointment_booked]", err?.message);
+            console.error('[EMAIL appointment_booked]', err?.message);
           }
         })();
       });
     } catch (err) {
-      console.error("[EMAIL appointment_booked schedule]", err?.message);
+      console.error('[EMAIL appointment_booked schedule]', err?.message);
     }
 
-    return success(
-      res,
-      savedAppointment,
-      MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED,
-      201
-    );
+    return success(res, savedAppointment, MESSAGE_CODES.SUCCESS.APPOINTMENT_CREATED, 201);
   } catch (e) {
     return error(
       res,
@@ -308,12 +290,7 @@ const updateAppointmentNotes = async (req, res) => {
       return error(res, MESSAGE_CODES.ERROR.APPOINTMENT_NOT_FOUND, 404);
     }
 
-    return success(
-      res,
-      updatedAppointment,
-      MESSAGE_CODES.SUCCESS.NOTES_UPDATED,
-      200
-    );
+    return success(res, updatedAppointment, MESSAGE_CODES.SUCCESS.NOTES_UPDATED, 200);
   } catch (e) {
     return error(
       res,

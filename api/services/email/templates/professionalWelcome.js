@@ -1,13 +1,13 @@
 // Plantilla de bienvenida con estilos inline y botón "bulletproof"
 // Compatible con Outlook (VML + tabla)
-const LOGO_URL = process.env.EMAIL_LOGO_URL || "";
+const LOGO_URL = process.env.EMAIL_LOGO_URL || '';
 const LOGO_WIDTH = Number(process.env.EMAIL_LOGO_WIDTH || 400); // px = para imagen imagen 640px
-const BRAND_COLOR = "#2a5fa6"; // azul IronHealth
-const TEXT_COLOR = "#111827"; // gris muy oscuro
-const MUTED_COLOR = "#6b7280"; // gris secundario
-const BG_COLOR = "#f3f4f6"; // gris de fondo
-const CARD_BG = "#ffffff"; // fondo del "card"
-const RADIUS = "12px";
+const BRAND_COLOR = '#2a5fa6'; // azul IronHealth
+const TEXT_COLOR = '#111827'; // gris muy oscuro
+const MUTED_COLOR = '#6b7280'; // gris secundario
+const BG_COLOR = '#f3f4f6'; // gris de fondo
+const CARD_BG = '#ffffff'; // fondo del "card"
+const RADIUS = '12px';
 
 /**
  * professionalWelcomeTemplate
@@ -16,45 +16,36 @@ const RADIUS = "12px";
  * @param {string} params.portalUrl       - URL al panel del profesional
  * @param {'es'|'en'} [params.lang='es']  - idioma
  */
-export function professionalWelcomeTemplate({
-  firstName,
-  portalUrl,
-  lang = "es",
-}) {
-  const safeName =
-    firstName || (lang === "en" ? "Professional" : "Profesional");
+export function professionalWelcomeTemplate({ firstName, portalUrl, lang = 'es' }) {
+  const safeName = firstName || (lang === 'en' ? 'Professional' : 'Profesional');
 
-  const t = (key) => {
+  const t = key => {
     const dict = {
       es: {
         subject: `¡Bienvenido/a a IronHealth, ${safeName}!`,
-        title: "Bienvenido/a al portal de profesionales",
+        title: 'Bienvenido/a al portal de profesionales',
         hello: `Hola ${safeName},`,
         copy1:
-          "Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil. Tus credenciales de acceso son tu email como nombre de usuario y tu DNI como contraseña.",
-        copy2:
-          "Si tienes cualquier duda, responde a este correo y nuestro equipo te ayudará.",
-        cta: "Acceder a mi Panel",
-        footer:
-          "Este es un correo automático. Si no esperabas este mensaje, puedes ignorarlo.",
+          'Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil. Tus credenciales de acceso son tu email como nombre de usuario y tu DNI como contraseña.',
+        copy2: 'Si tienes cualquier duda, responde a este correo y nuestro equipo te ayudará.',
+        cta: 'Acceder a mi Panel',
+        footer: 'Este es un correo automático. Si no esperabas este mensaje, puedes ignorarlo.',
       },
       en: {
         subject: `Welcome to IronHealth, ${safeName}!`,
-        title: "Welcome to the professional portal",
+        title: 'Welcome to the professional portal',
         hello: `Hi ${safeName},`,
         copy1:
-          "Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile. Your login credentials are your email as username and your ID as password.",
-        copy2:
-          "If you have any questions, just reply to this email and our team will assist you.",
-        cta: "Go to my Dashboard",
-        footer:
-          "This is an automated message. If you didn’t expect it, you can safely ignore it.",
+          'Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile. Your login credentials are your email as username and your ID as password.',
+        copy2: 'If you have any questions, just reply to this email and our team will assist you.',
+        cta: 'Go to my Dashboard',
+        footer: 'This is an automated message. If you didn’t expect it, you can safely ignore it.',
       },
     };
     return (dict[lang] || dict.es)[key];
   };
 
-  const subject = t("subject");
+  const subject = t('subject');
 
   // Botón "bulletproof" (tabla + VML para Outlook)
   const buttonHtml = portalUrl
@@ -63,7 +54,7 @@ export function professionalWelcomeTemplate({
     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${portalUrl}" style="height:44px;v-text-anchor:middle;width:240px;" arcsize="12%" stroke="f" fillcolor="${BRAND_COLOR}">
       <w:anchorlock/>
       <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;">
-        ${t("cta")}
+        ${t('cta')}
       </center>
     </v:roundrect>
     <![endif]-->
@@ -72,11 +63,11 @@ export function professionalWelcomeTemplate({
        style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;text-decoration:none;
               font-family:Arial,sans-serif;font-size:16px;font-weight:700;line-height:44px;
               padding:0 18px;border-radius:8px;min-width:240px;text-align:center;">
-      ${t("cta")}
+      ${t('cta')}
     </a>
     <!--<![endif]-->
   `
-    : "";
+    : '';
   // Logo sin height="auto" como atributo; lo movemos al style
   const logoHtml = LOGO_URL
     ? `
@@ -87,7 +78,7 @@ export function professionalWelcomeTemplate({
       </td>
     </tr>
   `
-    : "";
+    : '';
 
   const html = `
   <div style="margin:0;padding:0;background:${BG_COLOR};">
@@ -101,16 +92,16 @@ export function professionalWelcomeTemplate({
             <tr>
               <td style="padding: 28px 24px 10px 24px;">
                 <h1 style="margin:0 0 18px 0;font-family:Arial,sans-serif;font-size:22px;line-height:1.3;color:${TEXT_COLOR};">
-                  ${t("title")}
+                  ${t('title')}
                 </h1>
                 <p style="margin:0 0 12px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
-                  ${t("hello")}
+                  ${t('hello')}
                 </p>
                 <p style="margin:0 0 12px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
-                  ${t("copy1")}
+                  ${t('copy1')}
                 </p>
                 <p style="margin:0 0 28px 0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:${TEXT_COLOR};">
-                  ${t("copy2")}
+                  ${t('copy2')}
                 </p>
                 <div style="margin: 12px 0 8px 0; text-align:left;">
                   ${buttonHtml}
@@ -120,7 +111,7 @@ export function professionalWelcomeTemplate({
             <tr>
               <td style="padding: 18px 24px 24px 24px;">
                 <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;color:${MUTED_COLOR};">
-                  ${t("footer")}
+                  ${t('footer')}
                 </p>
               </td>
             </tr>
@@ -133,14 +124,14 @@ export function professionalWelcomeTemplate({
   `;
 
   const text = [
-    t("title"),
-    "",
-    t("hello").replace(/<[^>]+>/g, ""),
-    t("copy1").replace(/<[^>]+>/g, ""),
-    t("copy2").replace(/<[^>]+>/g, ""),
-    portalUrl ? portalUrl : "",
-    "",
-  ].join("\n");
+    t('title'),
+    '',
+    t('hello').replace(/<[^>]+>/g, ''),
+    t('copy1').replace(/<[^>]+>/g, ''),
+    t('copy2').replace(/<[^>]+>/g, ''),
+    portalUrl ? portalUrl : '',
+    '',
+  ].join('\n');
 
   return { subject, html, text };
 }

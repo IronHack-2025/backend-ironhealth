@@ -7,7 +7,7 @@ import professionalRoutes from './api/routes/professionals.route.js';
 import appointmentsRoutes from './api/routes/appointments.route.js';
 import authRoutes from './api/routes/auth.route.js';
 import userRoutes from './api/routes/users.route.js';
-import emailRoutes from "./api/routes/email.route.js";
+import emailRoutes from './api/routes/email.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,7 +28,7 @@ app.use('/api', authRoutes);
 
 app.use('/api', userRoutes);
 
-app.use("/api", emailRoutes);
+app.use('/api', emailRoutes);
 
 // Conexión a MongoDB Atlas usando variables de entorno
 if (process.env.NODE_ENV !== 'test') {
@@ -42,8 +42,8 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Endpoint de ejemplo
-app.get("/api/ping", (req, res) => {
-  res.json({ message: "pong" });
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'pong' });
 });
 
 if (process.env.NODE_ENV !== 'test') {
