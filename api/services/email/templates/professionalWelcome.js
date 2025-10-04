@@ -26,7 +26,7 @@ export function professionalWelcomeTemplate({ firstName, portalUrl, lang = 'es' 
         title: 'Bienvenido/a al portal de profesionales',
         hello: `Hola ${safeName},`,
         copy1:
-          'Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil. Tus credenciales de acceso son tu email como nombre de usuario y tu DNI como contraseña.',
+          'Tu cuenta de <b>profesional</b> en <b>IronHealth</b> ha sido creada con éxito. Desde tu panel podrás gestionar tus pacientes, citas y tu perfil. <br><br><span style="display:inline-block;margin-top:4px;"><b>Usuario:</b> tu email<br><b>Contraseña:</b> tu DNI</span>',
         copy2: 'Si tienes cualquier duda, responde a este correo y nuestro equipo te ayudará.',
         cta: 'Acceder a mi Panel',
         footer: 'Este es un correo automático. Si no esperabas este mensaje, puedes ignorarlo.',
@@ -36,7 +36,7 @@ export function professionalWelcomeTemplate({ firstName, portalUrl, lang = 'es' 
         title: 'Welcome to the professional portal',
         hello: `Hi ${safeName},`,
         copy1:
-          'Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile. Your login credentials are your email as username and your ID as password.',
+          'Your <b>professional</b> account at <b>IronHealth</b> has been created successfully. From your dashboard you can manage patients, appointments, and your profile. <br><br><span style="display:inline-block;margin-top:4px;"><b>Username:</b> your email<br><b>Password:</b> your ID</span>',
         copy2: 'If you have any questions, just reply to this email and our team will assist you.',
         cta: 'Go to my Dashboard',
         footer: 'This is an automated message. If you didn’t expect it, you can safely ignore it.',
