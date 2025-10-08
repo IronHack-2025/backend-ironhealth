@@ -1,0 +1,214 @@
+graph TB
+    subgraph "🌐 Client Layer"
+        BROWSER["🖥️ Web Browser<br/>Patient Portal"]
+        MOBILE["📱 Mobile App<br/>(Future)"]
+        API_CLIENT["🔧 API Client<br/>Postman/Insomnia"]
+    end
+    
+    subgraph "⚡ Application Layer"
+        subgraph "🟢 Node.js Runtime"
+            EXPRESS["🚀 Express.js Server<br/>Port: 3000<br/>CORS Enabled"]
+            
+            subgraph "🛡️ Middleware Stack"
+                MW1["🔓 CORS Middleware"]
+                MW2["📦 express.json()"]
+                MW3["🔐 JWT Authentication"]
+                MW4["✅ express-validator"]
+                MW5["⏱️ Rate Limiting"]
+                MW6["📤 Response Handler"]
+            end
+            
+            subgraph "🛣️ API Routes"
+                API_AUTH["🔑 /api/auth/*<br/>Login, Logout, Change Password"]
+                API_USERS["👤 /api/users/*<br/>User Management"]
+                API_PATIENTS["🏥 /api/patients/*<br/>Patient CRUD"]
+                API_PROF["👨‍⚕️ /api/professionals/*<br/>Professional CRUD"]
+                API_APPT["📅 /api/appointments/*<br/>Appointment Management"]
+                API_EMAIL["📧 /api/email/*<br/>Email Operations"]
+            end
+        end
+        
+        subgraph "🎮 Business Logic"
+            CONTROLLERS["🎯 Controllers<br/>Request Processing"]
+            VALIDATORS["✅ Validators<br/>Input Sanitization"]
+            SERVICES["🔧 Services<br/>Email, File Upload"]
+        end
+    end
+    
+    subgraph "🗄️ Data Layer"
+        subgraph "🔗 ODM"
+            MONGOOSE["🍃 Mongoose ODM<br/>Schema Validation<br/>Query Builder"]
+        end
+        
+        subgraph "📋 Models"
+            M_USER["👤 User Model<br/>role: admin/patient/professional<br/>profileId reference"]
+            M_PATIENT["🏥 Patient Model<br/>Personal Info, DNI<br/>Medical History"]
+            M_PROF["👨‍⚕️ Professional Model<br/>Specialization<br/>Schedule, Color"]
+            M_APPT["📅 Appointment Model<br/>Date, Status<br/>Patient-Professional Link"]
+        end
+    end
+    
+    subgraph "💾 Database Layer"
+        MONGODB["🍃 MongoDB Atlas<br/>Cloud Database<br/>Connection Pool<br/>Replica Set"]
+        
+        subgraph "📊 Collections"
+            COL_USERS["👥 users"]
+            COL_PATIENTS["🏥 patients"]
+            COL_PROF["👨‍⚕️ professionals"]
+            COL_APPT["📅 appointments"]
+        end
+    end
+    
+    subgraph "🌍 External Services"
+        CLOUDINARY["☁️ Cloudinary<br/>Image Storage<br/>Profile Pictures<br/>Document Upload"]
+        RESEND["📨 Resend API<br/>Transactional Emails<br/>Appointment Notifications<br/>ICS Attachments"]
+        JWT_SERVICE["🔑 JWT<br/>Token Generation<br/>Token Verification<br/>Secret: JWT_SECRET"]
+    end
+    
+    subgraph "🛠️ Development Tools"
+        ESLINT_TOOL["🔍 ESLint<br/>Code Linting"]
+        PRETTIER_TOOL["✨ Prettier<br/>Code Formatting"]
+        JEST_TOOL["🧪 Jest<br/>Unit & Integration Tests<br/>MongoDB Memory Server"]
+        HUSKY["🐶 Husky<br/>Git Hooks<br/>Pre-commit Validation"]
+        NODEMON["🔄 Node --watch<br/>Auto-reload Dev Server"]
+    end
+    
+    subgraph "🔒 Security & Config"
+        ENV["🔐 Environment Variables<br/>.env file<br/>Secrets Management"]
+        BCRYPT["🔒 bcryptjs<br/>Password Hashing"]
+        SANITIZE["🛡️ sanitize-html<br/>XSS Prevention"]
+        ZOD["✅ Zod<br/>Schema Validation"]
+    end
+    
+    %% Client to Application
+    BROWSER --> EXPRESS
+    MOBILE --> EXPRESS
+    API_CLIENT --> EXPRESS
+    
+    %% Middleware Flow
+    EXPRESS --> MW1
+    MW1 --> MW2
+    MW2 --> MW3
+    MW3 --> MW4
+    MW4 --> MW5
+    MW5 --> MW6
+    
+    %% Routes to Controllers
+    MW6 --> API_AUTH
+    MW6 --> API_USERS
+    MW6 --> API_PATIENTS
+    MW6 --> API_PROF
+    MW6 --> API_APPT
+    MW6 --> API_EMAIL
+    
+    API_AUTH --> CONTROLLERS
+    API_USERS --> CONTROLLERS
+    API_PATIENTS --> CONTROLLERS
+    API_PROF --> CONTROLLERS
+    API_APPT --> CONTROLLERS
+    API_EMAIL --> CONTROLLERS
+    
+    %% Business Logic
+    CONTROLLERS --> VALIDATORS
+    VALIDATORS --> SERVICES
+    CONTROLLERS --> SERVICES
+    
+    %% Data Access
+    CONTROLLERS --> MONGOOSE
+    SERVICES --> MONGOOSE
+    
+    %% Models
+    MONGOOSE --> M_USER
+    MONGOOSE --> M_PATIENT
+    MONGOOSE --> M_PROF
+    MONGOOSE --> M_APPT
+    
+    %% Database Connection
+    M_USER --> MONGODB
+    M_PATIENT --> MONGODB
+    M_PROF --> MONGODB
+    M_APPT --> MONGODB
+    
+    MONGODB --> COL_USERS
+    MONGODB --> COL_PATIENTS
+    MONGODB --> COL_PROF
+    MONGODB --> COL_APPT
+    
+    %% External Services
+    SERVICES --> CLOUDINARY
+    SERVICES --> RESEND
+    MW3 --> JWT_SERVICE
+    
+    %% Security
+    ENV --> EXPRESS
+    CONTROLLERS --> BCRYPT
+    VALIDATORS --> SANITIZE
+    VALIDATORS --> ZOD
+    
+    %% Development Tools
+    EXPRESS -.-> NODEMON
+    EXPRESS -.-> JEST_TOOL
+    EXPRESS -.-> ESLINT_TOOL
+    EXPRESS -.-> PRETTIER_TOOL
+    EXPRESS -.-> HUSKY
+    
+    %% Client Layer - Blue Tones
+    style BROWSER fill:#1e88e5,stroke:#1565c0,stroke-width:3px,color:#fff
+    style MOBILE fill:#1e88e5,stroke:#1565c0,stroke-width:3px,color:#fff
+    style API_CLIENT fill:#1e88e5,stroke:#1565c0,stroke-width:3px,color:#fff
+    
+    %% Application Layer - Green
+    style EXPRESS fill:#43a047,stroke:#2e7d32,stroke-width:4px,color:#fff
+    
+    %% Middleware Stack - Orange/Red Tones
+    style MW1 fill:#ff7043,stroke:#f4511e,stroke-width:2px,color:#fff
+    style MW2 fill:#ff8a65,stroke:#f4511e,stroke-width:2px,color:#fff
+    style MW3 fill:#ef5350,stroke:#c62828,stroke-width:2px,color:#fff
+    style MW4 fill:#ffa726,stroke:#fb8c00,stroke-width:2px,color:#fff
+    style MW5 fill:#ff7043,stroke:#f4511e,stroke-width:2px,color:#fff
+    style MW6 fill:#ff8a65,stroke:#f4511e,stroke-width:2px,color:#fff
+    
+    %% API Routes - Blue Tones
+    style API_AUTH fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style API_USERS fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style API_PATIENTS fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style API_PROF fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style API_APPT fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style API_EMAIL fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    
+    %% Business Logic - Green Tones
+    style CONTROLLERS fill:#66bb6a,stroke:#43a047,stroke-width:3px,color:#fff
+    style VALIDATORS fill:#9ccc65,stroke:#7cb342,stroke-width:3px,color:#fff
+    style SERVICES fill:#26a69a,stroke:#00897b,stroke-width:3px,color:#fff
+    
+    %% Data Layer - Purple Tones
+    style MONGOOSE fill:#ab47bc,stroke:#8e24aa,stroke-width:3px,color:#fff
+    style M_USER fill:#ba68c8,stroke:#8e24aa,stroke-width:2px,color:#fff
+    style M_PATIENT fill:#ba68c8,stroke:#8e24aa,stroke-width:2px,color:#fff
+    style M_PROF fill:#ba68c8,stroke:#8e24aa,stroke-width:2px,color:#fff
+    style M_APPT fill:#ba68c8,stroke:#8e24aa,stroke-width:2px,color:#fff
+    
+    %% Database Layer - Green
+    style MONGODB fill:#13aa52,stroke:#0d7a3a,stroke-width:4px,color:#fff
+    style COL_USERS fill:#4db6ac,stroke:#00897b,stroke-width:2px,color:#fff
+    style COL_PATIENTS fill:#4db6ac,stroke:#00897b,stroke-width:2px,color:#fff
+    style COL_PROF fill:#4db6ac,stroke:#00897b,stroke-width:2px,color:#fff
+    style COL_APPT fill:#4db6ac,stroke:#00897b,stroke-width:2px,color:#fff
+    
+    %% External Services - Distinct Colors
+    style CLOUDINARY fill:#3448c5,stroke:#1e3a8a,stroke-width:3px,color:#fff
+    style RESEND fill:#000000,stroke:#374151,stroke-width:3px,color:#fff
+    style JWT_SERVICE fill:#d63aff,stroke:#9c27b0,stroke-width:3px,color:#fff
+    
+    %% Development Tools - Various Colors
+    style ESLINT_TOOL fill:#4b32c3,stroke:#311b92,stroke-width:2px,color:#fff
+    style PRETTIER_TOOL fill:#f7b93e,stroke:#f57c00,stroke-width:2px,color:#000
+    style JEST_TOOL fill:#c21325,stroke:#8b0000,stroke-width:2px,color:#fff
+    style HUSKY fill:#42b983,stroke:#2e7d32,stroke-width:2px,color:#fff
+    style NODEMON fill:#76d275,stroke:#43a047,stroke-width:2px,color:#fff
+    
+    %% Security & Config - Red/Purple Tones
+    style ENV fill:#7e57c2,stroke:#5e35b1,stroke-width:3px,color:#fff
+    style BCRYPT fill:#ef5350,stroke:#c62828,stroke-width:2px,color:#fff
+    style SANITIZE fill:#ec407a,stroke:#c2185b,stroke-width:2px,color:#fff
+    style ZOD fill:#ab47bc,stroke:#8e24aa,stroke-width:2px,color:#fff

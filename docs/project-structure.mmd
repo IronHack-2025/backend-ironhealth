@@ -1,0 +1,187 @@
+graph LR
+    subgraph "🏥 Backend IronHealth - Project Structure"
+        ROOT["📁 /backend-ironhealth"]
+        
+        subgraph "⚙️ Configuration Files"
+            ENV["🔐 .env<br/>Environment Variables"]
+            PKG["📦 package.json<br/>Dependencies & Scripts"]
+            ESLINT["🔍 .eslintrc.json<br/>Linting Rules"]
+            PRETTIER["✨ .prettierrc<br/>Code Formatting"]
+            JEST["🧪 jest.config.cjs<br/>Test Configuration"]
+        end
+        
+        subgraph "🚀 Entry Point"
+            APP["⚡ app.js<br/>Express Server Setup<br/>Routes Registration<br/>MongoDB Connection"]
+        end
+        
+        subgraph "🎯 API Layer"
+            API["📂 api/"]
+            
+            subgraph "🛣️ Routes"
+                R_AUTH["🔑 auth.route.js"]
+                R_USERS["👤 users.route.js"]
+                R_PATIENTS["🏥 patients.route.js"]
+                R_PROFESSIONALS["👨‍⚕️ professionals.route.js"]
+                R_APPOINTMENTS["📅 appointments.route.js"]
+                R_EMAIL["📧 email.route.js"]
+            end
+            
+            subgraph "🎮 Controllers"
+                C_AUTH["🔑 auth.controller.js<br/>login, changePassword, logout"]
+                C_USERS["👤 users.controller.js"]
+                C_PATIENTS["🏥 patients.controller.js"]
+                C_PROFESSIONALS["👨‍⚕️ professionals.controller.js"]
+                C_APPOINTMENTS["📅 appointments.controller.js"]
+                C_EMAIL["📧 email.controller.js"]
+            end
+            
+            subgraph "✅ Validators"
+                V_AUTH["🔒 auth.validators.js<br/>express-validator"]
+                V_PATIENT["🏥 patient.validators.js"]
+                V_PROFESSIONAL["👨‍⚕️ professionals.validators.js"]
+                V_APPOINTMENT["📅 appointment.validators.js"]
+            end
+            
+            subgraph "🗄️ Models"
+                M_USER["👤 User.model.js<br/>Mongoose Schema"]
+                M_PATIENT["🏥 Patient.model.js"]
+                M_PROFESSIONAL["👨‍⚕️ professionals.model.js"]
+                M_APPOINTMENT["📅 Appointment.model.js"]
+            end
+            
+            subgraph "🛡️ Middlewares"
+                MW_AUTH["🔐 auth.js<br/>verifyToken<br/>requireRole<br/>requireOwnProfile"]
+                MW_RESPONSE["📤 responseHandler.js<br/>success/error helpers"]
+                MW_SIGNATURE["✍️ getSignature.js"]
+            end
+            
+            subgraph "🔧 Services"
+                SVC_EMAIL["📨 email/<br/>Email Service<br/>Resend Integration"]
+            end
+            
+            subgraph "🛠️ Utils"
+                U_CODES["💬 messageCodes.js"]
+                U_DNI["🆔 validateDNI.js"]
+                U_EMAIL["📧 validateEmail.js"]
+                U_ICS["📆 ics.js<br/>Calendar Events"]
+                U_COLOR["🎨 assignColor.js"]
+            end
+            
+            subgraph "⚙️ Config"
+                CFG_CLOUD["☁️ cloudinary.js<br/>Image Upload"]
+                CFG_MONGO["🗄️ mongoConfigTesting.js"]
+            end
+            
+            subgraph "🌱 Seeds"
+                SEED_ADMIN["👑 adminSeed.js"]
+                SEED_UPDATE["🔄 updateAdminSeed.js"]
+            end
+            
+            subgraph "📊 Data"
+                DATA_PROF["📋 professions.json"]
+            end
+        end
+        
+        subgraph "🧪 Testing"
+            TESTS["🧪 __tests__/<br/>Jest Test Suites"]
+        end
+        
+        subgraph "📜 Scripts"
+            SCRIPT_EMAIL["📧 testEmail.mjs"]
+        end
+        
+        ROOT --> APP
+        ROOT --> API
+        ROOT --> TESTS
+        ROOT --> SCRIPTS
+        ROOT --> ENV
+        ROOT --> PKG
+        ROOT --> ESLINT
+        ROOT --> PRETTIER
+        ROOT --> JEST
+        
+        API --> R_AUTH & R_USERS & R_PATIENTS & R_PROFESSIONALS & R_APPOINTMENTS & R_EMAIL
+        API --> C_AUTH & C_USERS & C_PATIENTS & C_PROFESSIONALS & C_APPOINTMENTS & C_EMAIL
+        API --> V_AUTH & V_PATIENT & V_PROFESSIONAL & V_APPOINTMENT
+        API --> M_USER & M_PATIENT & M_PROFESSIONAL & M_APPOINTMENT
+        API --> MW_AUTH & MW_RESPONSE & MW_SIGNATURE
+        API --> SVC_EMAIL
+        API --> U_CODES & U_DNI & U_EMAIL & U_ICS & U_COLOR
+        API --> CFG_CLOUD & CFG_MONGO
+        API --> SEED_ADMIN & SEED_UPDATE
+        API --> DATA_PROF
+    end
+    
+    %% Root and Entry Point
+    style ROOT fill:#1e88e5,stroke:#1565c0,stroke-width:3px,color:#fff
+    style APP fill:#43a047,stroke:#2e7d32,stroke-width:3px,color:#fff
+    
+    %% Configuration Files
+    style ENV fill:#7e57c2,stroke:#5e35b1,stroke-width:2px,color:#fff
+    style PKG fill:#ef5350,stroke:#c62828,stroke-width:2px,color:#fff
+    style ESLINT fill:#5c6bc0,stroke:#3949ab,stroke-width:2px,color:#fff
+    style PRETTIER fill:#ff7043,stroke:#d84315,stroke-width:2px,color:#fff
+    style JEST fill:#ec407a,stroke:#c2185b,stroke-width:2px,color:#fff
+    
+    %% API Layer
+    style API fill:#26a69a,stroke:#00897b,stroke-width:3px,color:#fff
+    
+    %% Routes - Blue Tones
+    style R_AUTH fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style R_USERS fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style R_PATIENTS fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style R_PROFESSIONALS fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style R_APPOINTMENTS fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    style R_EMAIL fill:#42a5f5,stroke:#1e88e5,stroke-width:2px,color:#fff
+    
+    %% Controllers - Green Tones
+    style C_AUTH fill:#66bb6a,stroke:#43a047,stroke-width:2px,color:#fff
+    style C_USERS fill:#66bb6a,stroke:#43a047,stroke-width:2px,color:#fff
+    style C_PATIENTS fill:#66bb6a,stroke:#43a047,stroke-width:2px,color:#fff
+    style C_PROFESSIONALS fill:#66bb6a,stroke:#43a047,stroke-width:2px,color:#fff
+    style C_APPOINTMENTS fill:#66bb6a,stroke:#43a047,stroke-width:2px,color:#fff
+    style C_EMAIL fill:#66bb6a,stroke:#43a047,stroke-width:2px,color:#fff
+    
+    %% Validators - Orange Tones
+    style V_AUTH fill:#ffa726,stroke:#fb8c00,stroke-width:2px,color:#fff
+    style V_PATIENT fill:#ffa726,stroke:#fb8c00,stroke-width:2px,color:#fff
+    style V_PROFESSIONAL fill:#ffa726,stroke:#fb8c00,stroke-width:2px,color:#fff
+    style V_APPOINTMENT fill:#ffa726,stroke:#fb8c00,stroke-width:2px,color:#fff
+    
+    %% Models - Purple Tones
+    style M_USER fill:#ab47bc,stroke:#8e24aa,stroke-width:2px,color:#fff
+    style M_PATIENT fill:#ab47bc,stroke:#8e24aa,stroke-width:2px,color:#fff
+    style M_PROFESSIONAL fill:#ab47bc,stroke:#8e24aa,stroke-width:2px,color:#fff
+    style M_APPOINTMENT fill:#ab47bc,stroke:#8e24aa,stroke-width:2px,color:#fff
+    
+    %% Middlewares - Red Tones
+    style MW_AUTH fill:#ef5350,stroke:#e53935,stroke-width:2px,color:#fff
+    style MW_RESPONSE fill:#ef5350,stroke:#e53935,stroke-width:2px,color:#fff
+    style MW_SIGNATURE fill:#ef5350,stroke:#e53935,stroke-width:2px,color:#fff
+    
+    %% Services - Teal
+    style SVC_EMAIL fill:#26a69a,stroke:#00897b,stroke-width:2px,color:#fff
+    
+    %% Utils - Cyan Tones
+    style U_CODES fill:#29b6f6,stroke:#039be5,stroke-width:2px,color:#fff
+    style U_DNI fill:#29b6f6,stroke:#039be5,stroke-width:2px,color:#fff
+    style U_EMAIL fill:#29b6f6,stroke:#039be5,stroke-width:2px,color:#fff
+    style U_ICS fill:#29b6f6,stroke:#039be5,stroke-width:2px,color:#fff
+    style U_COLOR fill:#29b6f6,stroke:#039be5,stroke-width:2px,color:#fff
+    
+    %% Config - Indigo
+    style CFG_CLOUD fill:#5c6bc0,stroke:#3949ab,stroke-width:2px,color:#fff
+    style CFG_MONGO fill:#5c6bc0,stroke:#3949ab,stroke-width:2px,color:#fff
+    
+    %% Seeds - Lime
+    style SEED_ADMIN fill:#9ccc65,stroke:#7cb342,stroke-width:2px,color:#fff
+    style SEED_UPDATE fill:#9ccc65,stroke:#7cb342,stroke-width:2px,color:#fff
+    
+    %% Data - Amber
+    style DATA_PROF fill:#ffca28,stroke:#ffb300,stroke-width:2px,color:#000
+    
+    %% Testing - Pink
+    style TESTS fill:#ec407a,stroke:#c2185b,stroke-width:3px,color:#fff
+    
+    %% Scripts - Deep Orange
+    style SCRIPT_EMAIL fill:#ff7043,stroke:#f4511e,stroke-width:3px,color:#fff

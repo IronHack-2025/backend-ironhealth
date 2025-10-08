@@ -1,0 +1,121 @@
+sequenceDiagram
+    autonumber
+    participant Client as 🌐 Client/Frontend
+    participant Express as ⚡ Express Server
+    participant CORS as 🔓 CORS Middleware
+    participant Route as 🛣️ Route Handler
+    participant Validator as ✅ express-validator
+    participant Auth as 🔐 Auth Middleware
+    participant Controller as 🎮 Controller
+    participant Model as 🗄️ Mongoose Model
+    participant MongoDB as 🍃 MongoDB Atlas
+    participant External as 🌍 External Services
+    
+    rect rgb(200, 230, 255)
+    Note over Client,MongoDB: 🚀 API REQUEST FLOW WITH DATABASE CONNECTION
+    end
+    
+    rect rgb(230, 245, 255)
+    Note over Client,Express: ═══ STEP 1: REQUEST ENTRY ═══
+    Client->>+Express: 📨 HTTP Request (POST/GET/PUT/DELETE)
+    Express->>+CORS: 🔍 Apply CORS Policy
+    CORS-->>-Express: ✅ CORS Allowed
+    
+    Express->>+Route: 🎯 Match Route Pattern<br/>📍 /api/auth/login<br/>📍 /api/patients/:id<br/>📍 /api/appointments
+    end
+    
+    rect rgb(255, 240, 240)
+    Note over Route,MongoDB: ═══ STEP 2: AUTHENTICATION & AUTHORIZATION ═══
+    alt 🔐 Protected Route
+        Route->>+Auth: 🔑 verifyToken()
+        Auth->>Auth: 📤 Extract JWT from Header
+        Auth->>Auth: 🔍 jwt.verify(token, JWT_SECRET)
+        
+        alt ✅ Token Valid
+            Auth->>+MongoDB: 🔎 User.findById(decoded.id)
+            MongoDB-->>-Auth: 📄 User Document
+            Auth->>Auth: ✓ Check user.isActive
+            
+            alt 👤 User is Professional/Patient
+                Auth->>+MongoDB: 🔗 Populate profileId
+                MongoDB-->>-Auth: 📋 Full Profile Data
+            end
+            
+            Auth-->>-Route: ✅ req.user = {id, role, profileId, profile}
+        else ❌ Token Invalid/Expired
+            Auth-->>Client: 🚫 401 Unauthorized
+        end
+        
+        opt 🎭 Role-Based Access Control
+            Route->>+Auth: 👮 requireRole(['admin', 'professional'])
+            Auth->>Auth: 🔍 Check req.user.role
+            alt ❌ Insufficient Permissions
+                Auth-->>-Client: 🚫 403 Forbidden
+            end
+        end
+        
+        opt 🔒 Profile Ownership Check
+            Route->>+Auth: 🆔 requireOwnProfile/requireOwnPatientOrAdmin
+            Auth->>Auth: 🔍 Compare profileId with params.id
+            alt ❌ Not Owner & Not Admin
+                Auth-->>-Client: 🚫 403 Forbidden
+            end
+        end
+    end
+    end
+    
+    rect rgb(255, 250, 230)
+    Note over Route,Validator: ═══ STEP 3: INPUT VALIDATION ═══
+    Route->>+Validator: ✅ Run Validation Rules
+    Validator->>Validator: 📧 body('email').isEmail()<br/>🔒 body('password').isLength({min: 8})<br/>🧹 sanitizeBody()
+    
+    alt ❌ Validation Fails
+        Validator-->>Client: 🚫 400 Bad Request<br/>📋 {errors: [...]}
+    else ✅ Validation Passes
+        Validator->>+Controller: ✓ Execute Controller Function
+    end
+    Validator->>-Validator: Complete
+    end
+    
+    rect rgb(240, 255, 240)
+    Note over Controller,MongoDB: ═══ STEP 4: BUSINESS LOGIC & DATA OPERATIONS ═══
+    Controller->>+Controller: 🎯 Business Logic Processing
+    
+    alt 🗄️ Database Operation Required
+        Controller->>+Model: 🔍 Mongoose Query<br/>📌 User.findOne({email})<br/>📌 Patient.create(data)<br/>📌 Appointment.find({...})
+        Model->>Model: ✅ Apply Schema Validation<br/>🔄 Pre/Post Hooks<br/>🔗 Virtual Fields
+        Model->>+MongoDB: ⚡ Execute Query
+        
+        alt ✅ Query Successful
+            MongoDB-->>-Model: 📄 Document(s)
+            Model-->>-Controller: ✓ Processed Data
+        else ❌ Query Error
+            MongoDB-->>Model: ⚠️ Error
+            Model-->>Controller: 🚨 Database Error
+            Controller-->>-Client: 🚫 500 Internal Server Error
+        end
+    end
+    end
+    
+    rect rgb(245, 240, 255)
+    Note over Controller,External: ═══ STEP 5: EXTERNAL SERVICES ═══
+    alt 🌍 External Service Call
+        Controller->>+External: ☁️ Cloudinary Upload<br/>📧 Resend Email<br/>📆 ICS Calendar Generation
+        External-->>-Controller: ✅ Service Response
+    end
+    end
+    
+    rect rgb(240, 255, 250)
+    Note over Controller,Client: ═══ STEP 6: RESPONSE FORMATTING ═══
+    Controller->>Controller: 📦 Format Response<br/>✅ success(res, MESSAGE_CODES, data)<br/>❌ error(res, MESSAGE_CODES, status)
+    Controller-->>-Client: 📨 JSON Response<br/>✓ {success, message, data}
+    end
+    
+    rect rgb(230, 255, 230)
+    Note over Client,MongoDB: 🔌 DATABASE CONNECTION DETAILS
+    Note over Express,MongoDB: 🍃 Mongoose connects at app startup<br/>📡 mongoose.connect(MONGODB_URI)<br/>🔄 Connection pooling enabled<br/>⚙️ useNewUrlParser: true<br/>⚙️ useUnifiedTopology: true
+    end
+    
+    rect rgb(255, 245, 230)
+    Note over Model,MongoDB: 📋 MONGOOSE SCHEMA FEATURES<br/>✓ Validation Rules<br/>✓ Default Values<br/>✓ Indexes<br/>✓ Virtual Fields<br/>✓ Pre/Post Hooks<br/>✓ Population (References)
+    end
