@@ -10,7 +10,6 @@ import userRoutes from './api/routes/users.route.js';
 import emailRoutes from './api/routes/email.route.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware para CORS (permite todas las solicitudes)
 app.use(cors());
@@ -42,14 +41,8 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Endpoint de ejemplo
-app.get('/api/ping', (req, res) => {
-  res.json({ message: 'pong' });
+app.get('/api/pong', (req, res) => {
+  res.json({ message: 'ping pong' });
 });
-
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`Servidor escuchando en puerto ${PORT}`);
-  });
-}
 
 export default app;

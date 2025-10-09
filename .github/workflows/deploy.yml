@@ -1,0 +1,101 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches:
+      - AWS-Deploy
+  pull_request:
+    branches:
+      - AWS-Deploy
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+
+  deploy-test:  
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/AWS-Deploy' && github.event_name == 'push'
+    
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: eu-west-3
+      SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}  # <-- Nuevo
+      MONGODB_URI: ${{ secrets.MONGODB_URI_DEV }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      CLOUDINARY_UPLOAD_PRESET: ${{ secrets.CLOUDINARY_UPLOAD_PRESET }}
+      JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED }}
+      EMAIL_DISABLE_ALL: ${{ secrets.EMAIL_DISABLE_ALL }}
+      EMAIL_DEV_WHITELIST: ${{ secrets.EMAIL_DEV_WHITELIST }}
+      EMAIL_MAX_TOTAL_SIZE_MB: ${{ secrets.EMAIL_MAX_TOTAL_SIZE_MB }}
+      PORTAL_URL: ${{ secrets.PORTAL_URL_DEV }}
+      EMAIL_LOGO_URL: ${{ secrets.EMAIL_LOGO_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Serverless Framework v4
+        run: npm install -g serverless@4.20.2
+
+      - name: Verify AWS Connection
+        run: aws sts get-caller-identity
+
+      - name: Clean existing resources if needed
+        run: |
+          # Crear bucket S3
+          aws s3 mb s3://serverless-deployments-eu-west-3-ironhealth-Ironhack25 --region eu-west-3 || echo "Bucket already exists"
+          
+          # Eliminar LogGroup existente si causa conflictos
+          aws logs delete-log-group --log-group-name "/aws/lambda/IronHealth-backend-Ironhack25" --region eu-west-3 || echo "LogGroup doesn't exist or already cleaned"
+          
+          # Crear parámetro SSM (si falla, continuar)
+          aws ssm put-parameter \
+            --name "/serverless-framework/deployment/s3-bucket" \
+            --value "serverless-deployments-eu-west-3-ironhealth-ironhack25" \
+            --type "String" \
+            --overwrite \
+            --region eu-west-3 || echo "SSM parameter creation failed, continuing..."
+
+      - name: Deploy to AWS
+        run: npm run serverless:deploy

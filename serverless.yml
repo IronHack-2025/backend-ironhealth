@@ -1,0 +1,65 @@
+service: backend-ironhealth
+frameworkVersion: '4.20.2'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'eu-west-3'}
+  memorySize: 512
+  timeout: 30
+  deploymentBucket:
+    name: serverless-deployments-eu-west-3-ironhealth-ironhack25
+  httpApi:
+    id: savvzm2n1j
+  logs:
+    httpApi: false
+    frameworkLambda: false
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    MONGODB_URI: ${env:MONGODB_URI}
+    JWT_SECRET: ${env:JWT_SECRET}
+    CLOUDINARY_CLOUD_NAME: ${env:CLOUDINARY_CLOUD_NAME}
+    CLOUDINARY_API_KEY: ${env:CLOUDINARY_API_KEY}
+    CLOUDINARY_API_SECRET: ${env:CLOUDINARY_API_SECRET}
+    CLOUDINARY_UPLOAD_PRESET: ${env:CLOUDINARY_UPLOAD_PRESET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}
+    RESEND_API_KEY: ${env:RESEND_API_KEY}
+    EMAIL_FROM: ${env:EMAIL_FROM}
+    EMAIL_ENABLED: ${env:EMAIL_ENABLED}
+    EMAIL_DISABLE_ALL: ${env:EMAIL_DISABLE_ALL}
+    EMAIL_DEV_WHITELIST: ${env:EMAIL_DEV_WHITELIST}
+    EMAIL_MAX_TOTAL_SIZE_MB: ${env:EMAIL_MAX_TOTAL_SIZE_MB}
+    PORTAL_URL: ${env:PORTAL_URL}
+    EMAIL_LOGO_URL: ${env:EMAIL_LOGO_URL}
+
+functions:
+  app:
+    name: IronHealth-backend-Ironhack25
+    handler: handler.handler 
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: '*'
+      - httpApi:
+          path: /
+          method: '*'
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+    host: 0.0.0.0
+
+package:
+  exclude:
+    - node_modules/.bin/**
+    - .git/**
+    - .env
+    - README.md
+    - .eslintrc.js
+    - .prettierrc
+    - jest.config.js
+    - tests/**
