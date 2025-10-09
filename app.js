@@ -45,4 +45,8 @@ app.get('/api/pong', (req, res) => {
   res.json({ message: 'ping pong' });
 });
 
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'pong' });
+});
+
 export default app;
