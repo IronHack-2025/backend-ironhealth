@@ -4,7 +4,7 @@ frameworkVersion: '4.20.2'
 provider:
   name: aws
   runtime: nodejs18.x
-  stage: ${opt:stage, 'dev'}
+  stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'eu-west-3'}
   memorySize: 512
   timeout: 30
@@ -35,7 +35,7 @@ provider:
 
 functions:
   app:
-    name: IronHealth-backend-Ironhack25
+    name: IronHealth-backend-Ironhack25-${self:provider.stage}
     handler: handler.handler 
     events:
       - httpApi:

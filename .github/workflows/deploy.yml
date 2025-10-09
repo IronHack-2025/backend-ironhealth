@@ -98,4 +98,4 @@ jobs:
             --region eu-west-3 || echo "SSM parameter creation failed, continuing..."
 
       - name: Deploy to AWS
-        run: npm run serverless:deploy
+        run: npm run serverless:deploy -- --stage prod
