@@ -49,4 +49,13 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong' });
 });
 
+app.get('/api/debug-cloudinary', (req, res) => {
+  res.json({
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Not set',
+    apiKey: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Not set',
+    apiSecret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Not set',
+    uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET ? 'Set' : 'Not set',
+  });
+});
+
 export default app;
