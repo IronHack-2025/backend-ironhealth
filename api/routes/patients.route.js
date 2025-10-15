@@ -12,12 +12,12 @@ import {
   patientIdValidation,
   validate,
 } from '../validators/patient.validators.js';
-import { getSignature } from '../middlewares/getSignature.js';
+import { postSignature } from '../middlewares/postSignature.js';
 import { verifyToken, requireRole, requireOwnPatientOrAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/signature', getSignature);
+router.post('/signature', express.urlencoded({ extended: true }), express.json(), postSignature);
 
 // Only admins and professionals can create and view patients
 router.post(
